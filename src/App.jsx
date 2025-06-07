@@ -17,7 +17,9 @@ import DesignationManagement from "./pages/Configuration/Designation";
 import BranchManagement from "./pages/Configuration/Branch";
 import CandidateProfile from "./pages/Onboarding/CandidateProfile";
 import EmployeeDetails from "./pages/Onboarding/EmployeeDetails";
-import AddEmployee from "./pages/Onboarding/AddEmployee";
+import AddCandidate from "./pages/Onboarding/AddCandidate";
+import PayrollDetails from "./pages/Onboarding/PayrollDetails";
+import ActiveEmployees from "./pages/Manage Employee/ActiveEmployees";
 
 function App() {
   return (
@@ -34,7 +36,9 @@ function App() {
           <Route path="/Branch" element={<BranchManagement />} />
           <Route path="/CandidateProfile" element={<CandidateProfile />} />
           <Route path="/EmployeeDetails" element={<EmployeeDetails />} />
-          <Route path="/AddEmployee" element={<AddEmployee />} />
+          <Route path="/AddCandidate" element={<AddCandidate />} />
+          <Route path="/PayrollDetails" element={<PayrollDetails />} />
+          <Route path="/ActiveEmployees" element={<ActiveEmployees />} />
         </Routes>
       </DashboardLayout>
     </Router>

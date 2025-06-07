@@ -526,7 +526,6 @@ const EmployeeManagement = () => {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                   <tr className="text-xs">
                     <th className="px-3 py-2 text-center font-medium text-gray-600 uppercase tracking-wider">SL No</th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 uppercase tracking-wider">EMP ID</th>
                     <th className="px-3 py-2 text-center font-medium text-gray-600 uppercase tracking-wider">NAME</th>
                     <th className="px-3 py-2 text-center font-medium text-gray-600 uppercase tracking-wider">DOJ</th>
                     <th className="px-3 py-2 text-center font-medium text-gray-600 uppercase tracking-wider">Branch</th>
@@ -544,7 +543,6 @@ const EmployeeManagement = () => {
                       className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 text-sm transition-all duration-200"
                     >
                       <td className="px-3 py-2 text-center whitespace-nowrap text-gray-900">{startIndex + index + 1}</td>
-                      <td className="px-3 py-2 text-center whitespace-nowrap font-medium text-gray-900">{employee.employeeId}</td>
                       <td className="px-3 py-2 text-center whitespace-nowrap text-gray-900">{employee.name}</td>
                       <td className="px-3 py-2 text-center whitespace-nowrap text-gray-900">{employee.dateOfJoining}</td>
                       <td className="px-3 py-2 text-center whitespace-nowrap text-gray-900">{employee.branch}</td>

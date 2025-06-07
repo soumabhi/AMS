@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Eye, Plus, ChevronRight, Home, Search, AlertCircle, X, Filter, ChevronLeft, Mail, Calendar, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Toast Component
 const Toast = ({ message, type, isVisible, onClose }) => {
@@ -300,6 +301,7 @@ const candidateService = {
 };
 
 const CandidateProfile = () => {
+  const navigate = useNavigate();
   const [allCandidates, setAllCandidates] = useState([]);
   const [filteredCandidates, setFilteredCandidates] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -337,7 +339,7 @@ const CandidateProfile = () => {
   }, [filteredCandidates, currentPage, itemsPerPage]);
 
   const handleAddCandidate = () => {
-    showMessage('info', 'Add Candidate functionality');
+    navigate('/AddCandidate');
   };
 
   const handleViewDetails = (candidate) => {
@@ -485,7 +487,7 @@ const CandidateProfile = () => {
 
                   <button
                     onClick={handleAddCandidate}
-                    className="flex items-center px-3 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-900 shadow-md hover:shadow-lg transition-all duration-200"
+                    className="flex items-center px-3 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-900 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
                   >
                     <Plus className="w-4 h-4 mr-1" />
                     Add Candidate

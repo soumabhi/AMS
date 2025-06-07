@@ -23,7 +23,8 @@ import {
   Send,
   Plus,
   Coins,
-  BarChart3
+  BarChart3,
+  Handshake
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -51,6 +52,13 @@ const menuItems = [
     ]
   },
   {
+    id: "recruitment",
+    label: "Recruitment",
+    icon: Handshake,
+    path: "/recruitment",
+    type: "single"
+  },
+  {
     id: "onboarding",
     label: "Onboarding",
     icon: UserPlus,
@@ -58,7 +66,7 @@ const menuItems = [
     subItems: [
       { label: "Candidate Profile", icon: Users, path: "/CandidateProfile" },
       { label: "Employee Details", icon: FileText, path: "/EmployeeDetails" },
-      { label: "Payroll MS", icon: CreditCard, path: "/onboarding/payroll" }
+      { label: "Payroll MS", icon: CreditCard, path: "/PayrollDetails" }
     ]
   },
   {
@@ -67,7 +75,7 @@ const menuItems = [
     icon: Users,
     type: "accordion",
     subItems: [
-      { label: "Active Employees", icon: UserCheck, path: "/employees/active" },
+      { label: "Active Employees", icon: UserCheck, path: "/ActiveEmployees" },
       { label: "Disabled Employees", icon: Users, path: "/employees/disabled" }
     ]
   },
