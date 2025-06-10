@@ -76,7 +76,7 @@ const menuItems = [
     type: "accordion",
     subItems: [
       { label: "Active Employees", icon: UserCheck, path: "/ActiveEmployees" },
-      { label: "Disabled Employees", icon: Users, path: "/employees/disabled" }
+      { label: "Disabled Employees", icon: Users, path: "/DisabledEmployee" }
     ]
   },
   {
@@ -85,8 +85,8 @@ const menuItems = [
     icon: Clock,
     type: "accordion",
     subItems: [
-      { label: "View Attendance", icon: Eye, path: "/attendance/view" },
-      { label: "Approve Attendance", icon: CheckCircle, path: "/attendance/approve" }
+      { label: "View Attendance", icon: Eye, path: "/ViewAttendance" },
+      { label: "Approve Attendance", icon: CheckCircle, path: "/ApprooveAttendance" }
     ]
   },
   {
@@ -95,9 +95,9 @@ const menuItems = [
     icon: Briefcase,
     type: "accordion",
     subItems: [
-      { label: "Leave Request", icon: Send, path: "/leaves/request" },
-      { label: "Leave Application", icon: FileText, path: "/leaves/application" },
-      { label: "Leave Credit", icon: Plus, path: "/leaves/credit" }
+      { label: "Leave Request", icon: Send, path: "/ViewLeaveRequest" },
+      { label: "Leave Application", icon: FileText, path: "/ViewLeaveApplications" },
+      { label: "Leave Credit", icon: Plus, path: "/LeaveCredit" }
     ]
   },
   {
@@ -118,7 +118,7 @@ const menuItems = [
     id: "holiday-calendar",
     label: "Holiday Calendar",
     icon: Calendar,
-    path: "/holiday-calendar",
+    path: "/Calender",
     type: "single"
   }
 ];

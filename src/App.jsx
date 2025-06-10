@@ -5,7 +5,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // Layout
 import DashboardLayout from "./layouts/DashboardLayout";
 
-
 // Pages
 import Dashboard from "./pages/Dashboard";
 import ManageShift from "./pages/Configuration/ManageShift";
@@ -20,6 +19,14 @@ import EmployeeDetails from "./pages/Onboarding/EmployeeDetails";
 import AddCandidate from "./pages/Onboarding/AddCandidate";
 import PayrollDetails from "./pages/Onboarding/PayrollDetails";
 import ActiveEmployees from "./pages/Manage Employee/ActiveEmployees";
+import DisabledEmployee from "./pages/Manage Employee/DisabledEmplyee";
+import ViewAttendance from "./pages/Manage_Attendance/View_Attendance";
+import ApprooveAttendance from "./pages/Manage_Attendance/ApprooveAttendance";
+import ViewLeaveRequest from "./pages/Manage_Leaves/ViewLeaveRequest";
+import ApplyLeave from "./pages/Manage_Leaves/ApplyLeave ";
+import ViewLeaveApplications from "./pages/Manage_Leaves/Leaveapplication";
+import LeaveCredit from "./pages/Manage_Leaves/LeaveCredit";
+import Calender from "./pages/Calender";
 
 function App() {
   return (
@@ -39,6 +46,14 @@ function App() {
           <Route path="/AddCandidate" element={<AddCandidate />} />
           <Route path="/PayrollDetails" element={<PayrollDetails />} />
           <Route path="/ActiveEmployees" element={<ActiveEmployees />} />
+          <Route path="/DisabledEmployee" element={<DisabledEmployee />} />
+          <Route path="/ViewAttendance" element={<ViewAttendance />} />
+          <Route path="/ApprooveAttendance" element={<ApprooveAttendance />} />
+          <Route path="/ViewLeaveRequest" element={<ViewLeaveRequest />} />
+          <Route path="/ApplyLeave" element={<ApplyLeave />} />
+          <Route path="/ViewLeaveApplications" element={<ViewLeaveApplications />} />
+          <Route path="/LeaveCredit" element={<LeaveCredit />} />
+          <Route path="/Calender" element={<Calender />} />
         </Routes>
       </DashboardLayout>
     </Router>
