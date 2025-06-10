@@ -223,7 +223,7 @@ const DisabledEmployees = () => {
                 </div>
 
                 {/* Enhanced Table */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
         <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                 <tr>
@@ -257,42 +257,37 @@ const DisabledEmployees = () => {
                 <tbody className="bg-white divide-y divide-gray-50">
                     {filteredEmployees.map((employee, index) => (
                         <tr key={employee.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                            <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            <td className="px-3 py-2 whitespace-nowrap text-center">
+                                <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold mx-auto">
                                     {index + 1}
                                 </div>
                             </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
+                            <td className="px-3 py-2 whitespace-nowrap text-center">
                                 <div 
-                                    className="flex items-center gap-2 cursor-pointer hover:text-blue-500"
+                                    className="cursor-pointer hover:text-blue-500"
                                     onClick={() => showEmployeeDetails(employee)}
                                 >
-                                    <div className="w-8 h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center text-gray-500">
-                                        <User className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <div className="font-medium text-sm">{employee.name}</div>
-                                        <div className="text-gray-500 text-xs">{employee.position}</div>
-                                    </div>
+                                    <div className="font-medium text-sm">{employee.name}</div>
+                                    <div className="text-gray-500 text-xs">{employee.position}</div>
                                 </div>
                             </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-sm font-mono text-gray-900">
+                            <td className="px-3 py-2 whitespace-nowrap text-sm font-mono text-gray-900 text-center">
                                 {employee.emp_id}
                             </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
+                            <td className="px-3 py-2 whitespace-nowrap text-center">
                                 <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${getDepartmentColor(employee.department)}`}>
                                     {employee.department}
                                 </span>
                             </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
                                 {formatDate(employee.disabled_date)}
                             </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
+                            <td className="px-3 py-2 whitespace-nowrap text-center">
                                 <span className="text-sm font-medium text-gray-700">
                                     {employee.reason || 'Not specified'}
                                 </span>
                             </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
+                            <td className="px-3 py-2 whitespace-nowrap text-center">
                                 <button
                                     onClick={() => showEnableModal(employee)}
                                     className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 border border-white-700 rounded-lg hover:from-gray-700 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -325,7 +320,7 @@ const DisabledEmployees = () => {
 
             {/* Employee Detail Modal */}
             {detailModalVisible && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-auto">
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
@@ -401,7 +396,7 @@ const DisabledEmployees = () => {
                                                 setDetailModalVisible(false);
                                                 showEnableModal(selectedEmployee);
                                             }}
-                                            className="inline-flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 border border-green-700 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                            className="inline-flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-black to-green-700 border border-green-700 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
                                         >
                                             <UserPlus className="w-4 h-4 mr-2" />
                                             Re-enable Employee
