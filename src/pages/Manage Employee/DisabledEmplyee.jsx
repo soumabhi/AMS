@@ -396,7 +396,7 @@ const DisabledEmployees = () => {
                                                 setDetailModalVisible(false);
                                                 showEnableModal(selectedEmployee);
                                             }}
-                                            className="inline-flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-black to-green-700 border border-green-700 rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                            className="inline-flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-black to-black border border-black-700 rounded-lg hover:from-black-700 hover:to-black-800 focus:outline-none focus:ring-2 focus:ring-black-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
                                         >
                                             <UserPlus className="w-4 h-4 mr-2" />
                                             Re-enable Employee

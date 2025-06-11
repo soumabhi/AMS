@@ -27,6 +27,9 @@ import ApplyLeave from "./pages/Manage_Leaves/ApplyLeave ";
 import ViewLeaveApplications from "./pages/Manage_Leaves/Leaveapplication";
 import LeaveCredit from "./pages/Manage_Leaves/LeaveCredit";
 import Calender from "./pages/Calender";
+import DeputationTable from "./pages/Deputatin&Transfer/Deputation";
+import Transfertable from "./pages/Deputatin&Transfer/Transfer";
+
 
 function App() {
   return (
@@ -54,6 +57,8 @@ function App() {
           <Route path="/ViewLeaveApplications" element={<ViewLeaveApplications />} />
           <Route path="/LeaveCredit" element={<LeaveCredit />} />
           <Route path="/Calender" element={<Calender />} />
+          <Route path="/DeputationTable" element={<DeputationTable />} />
+          <Route path="/Transfertable" element={<Transfertable />} />
         </Routes>
       </DashboardLayout>
     </Router>

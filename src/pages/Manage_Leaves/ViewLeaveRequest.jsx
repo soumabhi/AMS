@@ -679,9 +679,9 @@ const LeaveApplications = () => {
             </td>
             <td className="border border-gray-200 px-6 py-2">
               <div className="space-y-1">
-                <div className="font-medium text-sm">{application.emp_id}</div>
+                <div className="font-medium text-sm"></div>
                 <div className="text-gray-700 font-semibold">{application.name}</div>
-                <div className="text-gray-500 text-xs">{application.department}</div>
+                <div className="text-gray-500 text-xs"><b>{application.emp_id}</b>-{application.department}</div>
               </div>
             </td>
             <td className="border border-gray-200 px-6 py-2">
@@ -797,7 +797,9 @@ const LeaveApplications = () => {
               <h3 className="text-2xl font-bold text-gray-900">
                 Leave Application
               </h3>
-              <p className="text-sm text-gray-600 mt-1">Employee ID: {selectedApplication.emp_id}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                <b>{selectedApplication.name}</b> ({selectedApplication.emp_id}/{selectedApplication.department}/{selectedApplication.branch})
+              </p>
             </div>
             <button
               onClick={handleModalCancel}
@@ -809,103 +811,74 @@ const LeaveApplications = () => {
         </div>
         
         {/* Scrollable Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)] px-8 py-6">
+        <div className="overflow-y-auto max-h-[calc(90vh-120px)] px-8 py-6 space-y-8">
           {/* Employee and Leave Information Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Employee Information */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
-              <div className="flex items-center mb-4">
-                <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-800">Employee Information</h4>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-600">Name</span>
-                  <span className="font-semibold text-gray-900 text-right">{selectedApplication.name}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-600">Department</span>
-                  <span className="font-semibold text-gray-900 text-right">{selectedApplication.department}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-600">Branch</span>
-                  <span className="font-semibold text-gray-900 text-right">{selectedApplication.branch}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-600">Position</span>
-                  <span className="font-semibold text-gray-900 text-right">{selectedApplication.position}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-600">Approver</span>
-                  <span className="font-semibold text-gray-900 text-right">{selectedApplication.approver}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Leave Information */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-100">
-              <div className="flex items-center mb-4">
-                <div className="p-2 bg-green-100 rounded-lg mr-3">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-800">Leave Information</h4>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Leave Type</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getLeaveTypeColor(selectedApplication.leave_type)}`}>
-                    {selectedApplication.leave_type}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-600">Status</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedApplication.status)}`}>
-                    {selectedApplication.status}
-                  </span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-600">Duration</span>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">
-                      {new Date(selectedApplication.start_date).toLocaleDateString()} - {new Date(selectedApplication.end_date).toLocaleDateString()}
-                    </div>
-                    <div className="text-sm text-gray-500">{selectedApplication.total_days} days</div>
-                  </div>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-600">Applied On</span>
-                  <span className="font-semibold text-gray-900">{new Date(selectedApplication.applied_on).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+         <div className="bg-gradient-to-br from-gray-50 to-gray-50 p-6 rounded-xl border border-green-100">
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center">
+      <div className="p-2 bg-green-100 rounded-lg mr-4">
+        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h4 className="text-lg font-semibold text-gray-800">Leave Information</h4>
+    </div>
+  </div>
+  
+  <div className="grid grid-cols-4 gap-4">
+    <div className="min-w-0">
+      <div className="text-sm font-medium text-gray-600 mb-2">Leave Type</div>
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getLeaveTypeColor(selectedApplication.leave_type)}`}>
+        {selectedApplication.leave_type}
+      </span>
+    </div>
+    
+    <div className="min-w-0">
+      <div className="text-sm font-medium text-gray-600 mb-2">Status</div>
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedApplication.status)}`}>
+        {selectedApplication.status}
+      </span>
+    </div>
+    
+    <div className="min-w-0">
+      <div className="text-sm font-medium text-gray-600 mb-2">Duration</div>
+      <div>
+        <div className="font-semibold text-gray-900">
+          {new Date(selectedApplication.start_date).toLocaleDateString()} - {new Date(selectedApplication.end_date).toLocaleDateString()}
+        </div>
+        <div className="text-sm text-gray-500">{selectedApplication.total_days} days</div>
+      </div>
+    </div>
+    
+    <div className="min-w-0">
+      <div className="text-sm font-medium text-gray-600 mb-2">Applied On</div>
+      <span className="font-semibold text-gray-900">
+        {new Date(selectedApplication.applied_on).toLocaleDateString()}
+      </span>
+    </div>
+  </div>
+</div>
 
           {/* Leave Credits Section */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-100 mb-8">
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-purple-100 rounded-lg mr-3">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-r from-gray-50 to-gray-50 p-6 rounded-xl border border-purple-100">
+            <div className="flex items-center mb-6">
+              <div className="p-2 bg-purple-100 rounded-lg mr-4">
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
               <h4 className="text-lg font-semibold text-gray-800">Leave Credits</h4>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex-1 mr-4">
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1">
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-300" 
+                    className="bg-gradient-to-r from-gray-500 to-black h-3 rounded-full transition-all duration-300" 
                     style={{ width: `${(selectedApplication.leave_credits.used / selectedApplication.leave_credits.total) * 100}%` }}
                   ></div>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right min-w-[100px]">
                 <div className="text-sm font-semibold text-gray-900">
                   {selectedApplication.leave_credits.remaining} / {selectedApplication.leave_credits.total}
                 </div>
@@ -915,10 +888,10 @@ const LeaveApplications = () => {
           </div>
 
           {/* Reason Section */}
-          <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-6 rounded-xl border border-orange-100 mb-8">
-            <div className="flex items-center mb-4">
-              <div className="p-2 bg-orange-100 rounded-lg mr-3">
-                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-50 p-6 rounded-xl border border-orange-100">
+            <div className="flex items-center mb-6">
+              <div className="p-2 bg-orange-100 rounded-lg mr-4">
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
@@ -931,9 +904,9 @@ const LeaveApplications = () => {
 
           {/* Previous Remarks */}
           {selectedApplication.remarks && (
-            <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-6 rounded-xl border border-gray-200 mb-8">
-              <div className="flex items-center mb-4">
-                <div className="p-2 bg-gray-100 rounded-lg mr-3">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-50 p-6 rounded-xl border border-gray-200">
+              <div className="flex items-center mb-6">
+                <div className="p-2 bg-gray-100 rounded-lg mr-4">
                   <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                   </svg>
@@ -948,9 +921,9 @@ const LeaveApplications = () => {
 
           {/* Action Section for Pending Applications */}
           {selectedApplication.status === 'Pending' && (
-            <div className="bg-transparant p-6 rounded-xl border border-indigo-100">
-              <div className="flex items-center mb-4">
-                <div className="p-2 bg-indigo-100 rounded-lg mr-3">
+            <div className="bg-transparent p-6 rounded-xl border border-indigo-100">
+              <div className="flex items-center mb-6">
+                <div className="p-2 bg-indigo-100 rounded-lg mr-4">
                   <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>

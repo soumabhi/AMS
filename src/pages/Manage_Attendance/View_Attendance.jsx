@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { CSVLink } from 'react-csv';
 import * as XLSX from 'xlsx';
-// import { jsPDF } from 'jspdf';
-// import 'jspdf-autotable';
-import { Search, Filter, Download, ChevronLeft, ChevronRight, Plus, Clock, Calendar, User, Briefcase, Building, Sun, Moon, Star, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Search, Filter, Download, ChevronLeft, ChevronRight, Plus, Clock, Calendar, User, Briefcase, Building, Sun, Moon, Star, CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
 import Toast from '../../components/Toast';
 
 const AttendancePage = () => {
@@ -25,7 +23,7 @@ const AttendancePage = () => {
     { slNo: 15, empId: 'EMP015', empName: 'Joshua Martinez', designation: 'Tester', departmentId: 'DEPT004', branch: 'Head Office', shift: 'Evening', date: '2023-05-01', inTime: '09:15 AM', flagTime: '09:30 AM', outTime: '05:30 PM', duration: '8h 15m', flags: 'Late', status: 'Present' },
   ];
 
-  const [employees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState(initialEmployees);
   const [filteredEmployees, setFilteredEmployees] = useState(initialEmployees);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedDate] = useState('2023-05-01');
@@ -34,10 +32,21 @@ const AttendancePage = () => {
   const [selectedBranch, setSelectedBranch] = useState('All Branches');
   const [selectedShift, setSelectedShift] = useState('All Shifts');
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [editData, setEditData] = useState({
+    inTime: '',
+    outTime: '',
+    status: 'Present',
+    flags: 'None'
+  });
+  
   const itemsPerPage = 10;
 
   const branchOptions = ['All Branches', ...new Set(initialEmployees.map(emp => emp.branch))];
   const shiftOptions = ['All Shifts', 'Morning', 'Evening', 'Night'];
+  const statusOptions = ['Present', 'Absent', 'Half Day', 'Leave'];
+  const flagOptions = ['None', 'Late', 'Early Departure', 'Absent'];
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, isVisible: true });
@@ -47,9 +56,115 @@ const AttendancePage = () => {
     setToast({ ...toast, isVisible: false });
   };
 
+  const openEditModal = (employee) => {
+    setCurrentEmployee(employee);
+    setEditData({
+      inTime: employee.inTime === '--' ? '' : employee.inTime,
+      outTime: employee.outTime === '--' ? '' : employee.outTime,
+      status: employee.status,
+      flags: employee.flags
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setCurrentEmployee(null);
+    setEditData({
+      inTime: '',
+      outTime: '',
+      status: 'Present',
+      flags: 'None'
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const calculateDuration = (inTime, outTime) => {
+    if (!inTime || !outTime || inTime === '--' || outTime === '--') return '0h 0m';
+    
+    try {
+      const parseTime = (timeStr) => {
+        const [timePart, period] = timeStr.split(' ');
+        const [hours, minutes] = timePart.split(':').map(Number);
+        let totalHours = hours;
+        if (period === 'PM' && hours !== 12) totalHours += 12;
+        if (period === 'AM' && hours === 12) totalHours = 0;
+        return totalHours * 60 + minutes;
+      };
+
+      const inMinutes = parseTime(inTime);
+      const outMinutes = parseTime(outTime);
+
+      if (outMinutes < inMinutes) return '0h 0m'; // Invalid time range
+
+      const diffMinutes = outMinutes - inMinutes;
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+      return `${hours}h ${minutes}m`;
+    } catch (e) {
+      return '0h 0m';
+    }
+  };
+
+  const updateAttendance = () => {
+    if (!currentEmployee) return;
+
+    // Calculate duration
+    const duration = calculateDuration(editData.inTime, editData.outTime);
+
+    // Determine if we should set flags automatically for late arrival
+    let flags = editData.flags;
+    if (editData.status === 'Present' && editData.inTime) {
+      try {
+        const [timePart, period] = editData.inTime.split(' ');
+        const [hours, minutes] = timePart.split(':').map(Number);
+        let totalHours = hours;
+        if (period === 'PM' && hours !== 12) totalHours += 12;
+        if (period === 'AM' && hours === 12) totalHours = 0;
+        const totalMinutes = totalHours * 60 + minutes;
+        
+        // If arrival is after 9:15 AM (555 minutes) and flag isn't manually set
+        if (totalMinutes > 555 && flags === 'None') {
+          flags = 'Late';
+        }
+      } catch (e) {
+        console.error("Error parsing time:", e);
+      }
+    }
+
+    // Update the employee data
+    setEmployees(prevEmployees => {
+      return prevEmployees.map(emp => {
+        if (emp.empId === currentEmployee.empId) {
+          return {
+            ...emp,
+            inTime: editData.inTime || '--',
+            outTime: editData.outTime || '--',
+            duration: editData.status === 'Absent' ? '0h 0m' : duration,
+            flags: editData.status === 'Absent' ? 'Absent' : flags,
+            status: editData.status
+          };
+        }
+        return emp;
+      });
+    });
+
+    // Re-filter employees after update
+    filterEmployees(searchTerm, selectedBranch, selectedShift);
+    showToast('Attendance updated successfully');
+    closeModal();
+  };
+
   const filterEmployees = (term, branch, shift) => {
     const lowercasedTerm = term.toLowerCase();
-    const filtered = initialEmployees.filter(emp => 
+    const filtered = employees.filter(emp => 
       (emp.empId.toLowerCase().includes(lowercasedTerm) || 
       emp.empName.toLowerCase().includes(lowercasedTerm) ||
       emp.designation.toLowerCase().includes(lowercasedTerm) ||
@@ -159,40 +274,6 @@ const AttendancePage = () => {
     showToast('Excel exported successfully');
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF('landscape');
-    doc.text(`Employee Attendance - ${selectedDate}`, 14, 16);
-
-    const headers = [
-      'SL No', 'Employee ID', 'Name', 'Designation', 'Branch', 'Shift', 'Date',
-      'In Time', 'Out Time', 'Duration', 'Flags', 'Status'
-    ];
-
-    const data = filteredEmployees.map(emp => [
-      emp.slNo, emp.empId, emp.empName, emp.designation, emp.branch, emp.shift,
-      emp.date, emp.inTime, emp.outTime, emp.duration, emp.flags, emp.status
-    ]);
-
-    doc.autoTable({
-      head: [headers],
-      body: data,
-      startY: 20,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [22, 160, 133] }
-    });
-
-    doc.save(`attendance_${selectedDate}.pdf`);
-    showToast('PDF exported successfully');
-  };
-
-  const handleExport = () => {
-    if (exportFormat === 'excel') {
-      exportToExcel();
-    } else if (exportFormat === 'pdf') {
-      exportToPDF();
-    }
-  };
-
   const getStatusBadgeColor = (status) => {
     switch(status) {
       case 'Present': return 'bg-green-100 text-green-800 border-green-200';
@@ -213,26 +294,9 @@ const AttendancePage = () => {
 
   const getFlagBadgeColor = (flag) => {
     if (flag === 'Late') return 'bg-amber-100 text-amber-800 border-amber-200';
+    if (flag === 'Early Departure') return 'bg-purple-100 text-purple-800 border-purple-200';
     if (flag === 'Absent') return 'bg-red-100 text-red-800 border-red-200';
     return 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
-  const getShiftIcon = (shift) => {
-    switch(shift) {
-      case 'Morning': return <Sun className="w-4 h-4" />;
-      case 'Evening': return <Moon className="w-4 h-4" />;
-      case 'Night': return <Star className="w-4 h-4" />;
-      default: return <Clock className="w-4 h-4" />;
-    }
-  };
-
-  const getShiftBadgeColor = (shift) => {
-    switch(shift) {
-      case 'Morning': return 'bg-blue-50 text-blue-800 border-blue-100';
-      case 'Evening': return 'bg-purple-50 text-purple-800 border-purple-100';
-      case 'Night': return 'bg-gray-800 text-white border-gray-700';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
   };
 
   return (
@@ -243,6 +307,151 @@ const AttendancePage = () => {
         isVisible={toast.isVisible}
         onClose={hideToast}
       />
+
+      {/* Edit Attendance Modal */}
+      {isModalOpen && currentEmployee && (
+        <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-900">Edit Attendance</h3>
+                <button 
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="bg-gray-200 p-2 rounded-full">
+                    <User className="h-5 w-5 text-gray-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">{currentEmployee.empName}</h4>
+                    <p className="text-sm text-gray-500">{currentEmployee.designation} • {currentEmployee.branch}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Calendar className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={currentEmployee.date}
+                        readOnly
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-700"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Clock className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={currentEmployee.shift}
+                        readOnly
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl bg-gray-100 text-gray-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="inTime" className="block text-sm font-medium text-gray-700 mb-1">In Time</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Clock className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        id="inTime"
+                        name="inTime"
+                        value={editData.inTime}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM AM/PM"
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="outTime" className="block text-sm font-medium text-gray-700 mb-1">Out Time</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Clock className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        id="outTime"
+                        name="outTime"
+                        value={editData.outTime}
+                        onChange={handleInputChange}
+                        placeholder="HH:MM AM/PM"
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={editData.status}
+                      onChange={handleInputChange}
+                      className="block w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                    >
+                      {statusOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="flags" className="block text-sm font-medium text-gray-700 mb-1">Flags</label>
+                    <select
+                      id="flags"
+                      name="flags"
+                      value={editData.flags}
+                      onChange={handleInputChange}
+                      className="block w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                    >
+                      {flagOptions.map(option => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updateAttendance}
+                  className="px-4 py-2 bg-gradient-to-r from-gray-800 to-black text-white rounded-xl hover:from-gray-900 hover:to-gray-800 transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col h-screen">
         {/* Header */}
@@ -352,7 +561,7 @@ const AttendancePage = () => {
                     className="appearance-none block pl-3 pr-8 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 bg-white transition-all duration-200"
                   >
                     <option value="csv">CSV</option>
-                  
+                    <option value="excel">Excel</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                     <Download className="h-5 w-5 text-gray-400" />
@@ -369,7 +578,7 @@ const AttendancePage = () => {
                   </CSVLink>
                 ) : (
                   <button
-                    onClick={handleExport}
+                    onClick={exportToExcel}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
                   >
                     Export
@@ -381,100 +590,67 @@ const AttendancePage = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 p-2 overflow-auto">
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100">
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      #
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Employee
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Shift
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      In Time
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Out Time
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Duration
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Flags
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      Action
-                    </th>
+                    {['#', 'Employee', 'Shift', 'Date', 'In Time', 'Out Time', 'Duration', 'Flags', 'Status', 'Action'].map((header) => (
+                      <th 
+                        key={header} 
+                        scope="col" 
+                        className="px-6 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider"
+                      >
+                        {header}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {currentItems.length > 0 ? (
                     currentItems.map((emp) => (
                       <tr key={emp.empId} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-sm font-bold">
-                            {emp.slNo}
+                        <td className="px-6 py-2 whitespace-nowrap text-center">
+                          {emp.slNo}
+                        </td>
+                        <td className="px-6 py-2 whitespace-nowrap text-center">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{emp.empName}</div>
+                            <div className="text-xs text-gray-500">{emp.designation}/ {emp.branch}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
-                              <User className="h-5 w-5 text-gray-600" />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{emp.empName}</div>
-                              <div className="text-xs text-gray-500 flex items-center gap-1">
-                                <Briefcase className="w-3 h-3" /> {emp.designation}
-                              </div>
-                              <div className="text-xs text-gray-500 flex items-center gap-1">
-                                <Building className="w-3 h-3" /> {emp.branch}
-                              </div>
-                            </div>
-                          </div>
+                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-500">
+                          {emp.shift}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getShiftBadgeColor(emp.shift)}`}>
-                            {getShiftIcon(emp.shift)}
-                            <span className="ml-1">{emp.shift}</span>
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-500">
                           {emp.date}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-900">
                           {emp.inTime}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-900">
                           {emp.outTime}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm font-medium text-gray-900">
                           {emp.duration}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-2 whitespace-nowrap text-center">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getFlagBadgeColor(emp.flags)}`}>
                             {emp.flags}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-2 whitespace-nowrap text-center">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeColor(emp.status)}`}>
                             {getStatusIcon(emp.status)}
                             <span className="ml-1">{emp.status}</span>
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button className="text-gray-600 hover:text-gray-900">
+                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm font-medium">
+                          <button 
+                            onClick={() => openEditModal(emp)}
+                            className="text-gray-600 hover:text-gray-900"
+                          >
                             <Plus className="h-5 w-5" />
                           </button>
                         </td>
@@ -482,11 +658,8 @@ const AttendancePage = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="10" className="px-6 py-16 text-center">
+                      <td colSpan="10" className="px-6 py-8 text-center">
                         <div className="text-center">
-                          <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
-                            <User className="w-12 h-12 text-gray-500" />
-                          </div>
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">No records found</h3>
                           <p className="text-gray-500">Try adjusting your search or filter criteria</p>
                         </div>
@@ -510,7 +683,7 @@ const AttendancePage = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                   Next
                 </button>
@@ -530,19 +703,16 @@ const AttendancePage = () => {
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                     >
                       <span className="sr-only">Previous</span>
-                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                      <ChevronLeft className="h-5 w-5" />
                     </button>
                     
                     {paginationRange().map((pageNumber, index) => {
                       if (pageNumber === '...') {
                         return (
-                          <span
-                            key={index}
-                            className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
-                          >
+                          <span key={index} className="relative inline-flex items-center px-4 py-2 border border-gray-200 bg-white text-sm font-medium text-gray-700">
                             ...
                           </span>
                         );
@@ -551,25 +721,25 @@ const AttendancePage = () => {
                       return (
                         <button
                           key={index}
-                          onClick={() => handlePageChange(Number(pageNumber))}
+                          onClick={() => handlePageChange(pageNumber)}
                           className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                             currentPage === pageNumber
-                              ? 'z-10 bg-gray-100 border-gray-300 text-gray-800'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              ? 'z-10 bg-gray-800 border-gray-800 text-white'
+                              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
                           {pageNumber}
                         </button>
                       );
                     })}
-
+                    
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-200 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                     >
                       <span className="sr-only">Next</span>
-                      <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                      <ChevronRight className="h-5 w-5" />
                     </button>
                   </nav>
                 </div>

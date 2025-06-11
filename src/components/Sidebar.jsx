@@ -104,7 +104,7 @@ const menuItems = [
     id: "deputation-transfer",
     label: "Deputation & Transfer",
     icon: ArrowRightLeft,
-    path: "/deputation-transfer",
+    path: "/Deputation",
     type: "single"
   },
   {
