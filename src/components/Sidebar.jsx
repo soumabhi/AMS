@@ -100,13 +100,16 @@ const menuItems = [
       { label: "Leave Credit", icon: Plus, path: "/LeaveCredit" }
     ]
   },
-  {
-    id: "deputation-transfer",
-    label: "Deputation & Transfer",
-    icon: ArrowRightLeft,
-    path: "/Deputation",
-    type: "single"
-  },
+ {
+  id: "deputation-transfer",
+  label: "Deputation & Transfer",
+  icon: ArrowRightLeft,
+  type: "accordion", // change from "single" to "accordion"
+  subItems: [
+    { label: "Deputation", icon: ArrowRightLeft, path: "/DeputationTable" },
+    { label: "Transfer", icon: ArrowRightLeft, path: "/Transfertable" }
+  ]
+},
   {
     id: "manage-payroll",
     label: "Manage Payroll",
