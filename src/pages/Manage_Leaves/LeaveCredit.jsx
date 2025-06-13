@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, User, Briefcase, Calendar, Clock, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, User, Briefcase, Calendar, Clock, X, Info } from 'lucide-react';
 import Toast from '../../components/Toast';
 
 // Generate dummy data
@@ -62,6 +62,7 @@ const LeaveCreditManagement = () => {
   const [hoveredEmployee, setHoveredEmployee] = useState(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [hoverTimeout, setHoverTimeout] = useState(null);
+  const [infoPopover, setInfoPopover] = useState({ employee: null, anchor: null });
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, isVisible: true });
@@ -160,22 +161,25 @@ const LeaveCreditManagement = () => {
     setShowLeaveModal(true);
   };
 
-  const renderTotalLeaveCell = (employee) => {
+  // Update renderTotalLeaveCell to use monochrome colors and smaller button
+  const renderTotalLeaveCell = (employee, setInfoPopover) => {
     const totalUsed = employee.sick_leave.used + employee.casual_leave.used + employee.maternity_leave.used;
     const totalAvailable = employee.sick_leave.total + employee.casual_leave.total + employee.maternity_leave.total;
-
     return (
-      <div 
-        className="flex flex-col items-center cursor-pointer relative"
-        onMouseEnter={(e) => handleLeaveCellHover(employee, e)}
-        onMouseLeave={() => handleLeaveCellHover(null)}
-        onClick={() => handleLeaveCellClick(employee)}
-      >
-        <div className="text-sm font-medium text-gray-700">
-          <span className="text-red-600">{totalUsed}</span>
+      <div className="flex items-center justify-center gap-2">
+        <span className="text-sm font-medium text-black">
+          <span className="text-black">{totalUsed}</span>
           <span className="text-gray-400">/</span>
           <span className="text-black">{totalAvailable}</span>
-        </div>
+        </span>
+        <button
+          className="ml-1 flex items-center justify-center w-6 h-6 rounded-full bg-white hover:bg-gray-200 border border-gray-400 transition-all duration-200"
+          onClick={e => setInfoPopover({ employee, anchor: e.currentTarget })}
+          title="View leave credits"
+          type="button"
+        >
+          <Info className="w-4 h-4 text-black" />
+        </button>
       </div>
     );
   };
@@ -337,99 +341,81 @@ const LeaveCreditManagement = () => {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+              <thead className="bg-white">
                 <tr>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer"
-                    onClick={() => requestSort('sl_no')}
-                  >
+                  <th className="px-4 py-2 text-left text-xs font-bold text-black uppercase tracking-wider cursor-pointer" onClick={() => requestSort('sl_no')}>
                     <div className="flex items-center">
                       <span>#</span>
                       <span className="ml-1">{getSortIndicator('sl_no')}</span>
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer"
-                    onClick={() => requestSort('emp_id')}
-                  >
+                  <th className="px-4 py-2 text-left text-xs font-bold text-black uppercase tracking-wider cursor-pointer" onClick={() => requestSort('emp_id')}>
                     <div className="flex items-center">
                       <span>Employee ID</span>
                       <span className="ml-1">{getSortIndicator('emp_id')}</span>
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer"
-                    onClick={() => requestSort('name')}
-                  >
+                  <th className="px-4 py-2 text-left text-xs font-bold text-black uppercase tracking-wider cursor-pointer" onClick={() => requestSort('name')}>
                     <div className="flex items-center">
                       <span>Employee</span>
                       <span className="ml-1">{getSortIndicator('name')}</span>
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer"
-                    onClick={() => requestSort('department')}
-                  >
+                  <th className="px-4 py-2 text-left text-xs font-bold text-black uppercase tracking-wider cursor-pointer" onClick={() => requestSort('department')}>
                     <div className="flex items-center">
                       <span>Department</span>
                       <span className="ml-1">{getSortIndicator('department')}</span>
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider cursor-pointer"
-                    onClick={() => requestSort('designation')}
-                  >
+                  <th className="px-4 py-2 text-left text-xs font-bold text-black uppercase tracking-wider cursor-pointer" onClick={() => requestSort('designation')}>
                     <div className="flex items-center">
                       <span>Designation</span>
                       <span className="ml-1">{getSortIndicator('designation')}</span>
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    Total Leave
+                  <th className="px-4 py-2 text-center text-xs font-bold text-black uppercase tracking-wider">
+                    <span>Total Leave</span>
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {selectedData.length > 0 ? (
                   selectedData.map((emp) => (
-                    <tr 
-                      key={emp.emp_id} 
-                      className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    <tr key={emp.emp_id} className="hover:bg-gray-100 transition-all duration-200">
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <div className="w-7 h-7 bg-black rounded-full flex items-center justify-center text-white text-xs font-bold">
                           {emp.sl_no}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900">
+                      <td className="px-4 py-2 whitespace-nowrap text-xs font-mono font-medium text-black">
                         {emp.emp_id}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">{emp.name}</div>
-                        <div className="text-xs text-gray-500">{emp.join_date}</div>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <div className="text-xs font-semibold text-black">{emp.name}</div>
+                        <div className="text-[10px] text-gray-500">{emp.join_date}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${getDepartmentColor(emp.department)}`}>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-200 text-black">
                           {emp.department}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                      <td className="px-4 py-2 whitespace-nowrap text-xs text-black font-medium">
                         {emp.designation}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {renderTotalLeaveCell(emp)}
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        {renderTotalLeaveCell(emp, setInfoPopover)}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-16 text-center">
+                    <td colSpan="6" className="px-4 py-10 text-center">
                       <div className="text-center">
-                        <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
-                          <User className="w-12 h-12 text-gray-500" />
+                        <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                          <User className="w-8 h-8 text-gray-400" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No employees found</h3>
-                        <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+                        <h3 className="text-base font-semibold text-black mb-1">No employees found</h3>
+                        <p className="text-gray-500 text-xs">Try adjusting your search or filter criteria</p>
                       </div>
                     </td>
                   </tr>
@@ -509,32 +495,58 @@ const LeaveCreditManagement = () => {
         </div>
       </div>
 
-      {/* Hover Tooltip */}
-      {hoveredEmployee && !showLeaveModal && (
-        <div className="fixed bg-white shadow-xl rounded-xl p-2 border border-gray-200 z-50 pointer-events-none"
+      {/* Info popover/modal for leave credits */}
+      {infoPopover.employee && infoPopover.anchor && (
+        <div
+          className="fixed z-50"
           style={{
-            left: `${Math.min(hoveredEmployee.clientX + 10, window.innerWidth - 100)}px`,
-            top: `${Math.min(hoveredEmployee.clientY + 10, window.innerHeight - 100)}px`,
-            transform: 'translateY(-50%)'
+            left: `${
+              infoPopover.anchor.getBoundingClientRect().left +
+              window.scrollX +
+              infoPopover.anchor.offsetWidth / 2 -
+              130 // half of modal width (min-w-[260px])
+            }px`,
+            top: `${
+              infoPopover.anchor.getBoundingClientRect().top +
+              window.scrollY +
+              infoPopover.anchor.offsetHeight +
+              8 // small gap below the button
+            }px`,
+            minWidth: '260px',
+            maxWidth: '320px',
           }}
         >
-          <div className="space-y-2 min-w-[180px]">
-            <div>
-              <h4 className="font-semibold text-black text-sm">Sick Leave</h4>
-              <div className="text-xs text-gray-600">
-                {hoveredEmployee.sick_leave.used}/{hoveredEmployee.sick_leave.total} days
-              </div>
+          <div className="bg-white rounded-2xl shadow-2xl border border-black p-4 animate-fade-in">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-bold text-black text-base">Leave Credits</h4>
+              <button
+                className="p-1 rounded-full hover:bg-gray-100"
+                onClick={() => setInfoPopover({ employee: null, anchor: null })}
+              >
+                <X className="w-4 h-4 text-black" />
+              </button>
             </div>
-            <div>
-              <h4 className="font-semibold text-black text-sm">Casual Leave</h4>
-              <div className="text-xs text-gray-600">
-                {hoveredEmployee.casual_leave.used}/{hoveredEmployee.casual_leave.total} days
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-black"></span>
+                <span className="font-semibold text-black text-sm">Sick Leave:</span>
+                <span className="ml-auto text-sm text-gray-700">
+                  {infoPopover.employee.sick_leave.used}/{infoPopover.employee.sick_leave.total} days
+                </span>
               </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-black text-sm">Maternity Leave</h4>
-              <div className="text-xs text-gray-600">
-                {hoveredEmployee.maternity_leave.used}/{hoveredEmployee.maternity_leave.total} days
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-black"></span>
+                <span className="font-semibold text-black text-sm">Casual Leave:</span>
+                <span className="ml-auto text-sm text-gray-700">
+                  {infoPopover.employee.casual_leave.used}/{infoPopover.employee.casual_leave.total} days
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-black"></span>
+                <span className="font-semibold text-black text-sm">Maternity Leave:</span>
+                <span className="ml-auto text-sm text-gray-700">
+                  {infoPopover.employee.maternity_leave.used}/{infoPopover.employee.maternity_leave.total} days
+                </span>
               </div>
             </div>
           </div>

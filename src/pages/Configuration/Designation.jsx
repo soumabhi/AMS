@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertCircle, Edit, X, Users, Briefcase } from 'lucide-react';
+import { Plus, AlertCircle, Edit, X, Users, Briefcase, ChevronDown, Filter } from 'lucide-react';
 import Toast from '../../components/Toast';
 
 const TableSkeleton = () => {
@@ -106,6 +106,7 @@ const apiService = {
 
 const DesignationManagement = () => {
     const [designations, setDesignations] = useState([]);
+    const [allDesignations, setAllDesignations] = useState([]); // Store all designations for filtering
     const [editingDesignation, setEditingDesignation] = useState(null);
     const [loading, setLoading] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
@@ -115,10 +116,20 @@ const DesignationManagement = () => {
         departmentName: ""
     });
     const [validationErrors, setValidationErrors] = useState({});
+    const [departmentFilter, setDepartmentFilter] = useState('all');
+    const [uniqueDepartments, setUniqueDepartments] = useState([]);
 
     useEffect(() => {
         fetchDesignations();
     }, []);
+
+    useEffect(() => {
+        // Extract unique departments when designations change
+        if (allDesignations.length > 0) {
+            const departments = [...new Set(allDesignations.map(d => d.departmentName))];
+            setUniqueDepartments(departments);
+        }
+    }, [allDesignations]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type, isVisible: true });
@@ -151,13 +162,29 @@ const DesignationManagement = () => {
                 serialNo: index + 1
             }));
 
-            setDesignations(designationsWithSerial);
+            setAllDesignations(designationsWithSerial); // Store all designations
+            filterDesignations(departmentFilter, designationsWithSerial); // Apply current filter
         } catch (error) {
             console.error('Error fetching designations:', error);
             showToast('Failed to fetch designations. Please check your connection and try again.', 'error');
         } finally {
             setLoading(false);
         }
+    };
+
+    const filterDesignations = (department, designationsList = allDesignations) => {
+        if (department === 'all') {
+            setDesignations(designationsList);
+        } else {
+            const filtered = designationsList.filter(d => d.departmentName === department);
+            setDesignations(filtered);
+        }
+    };
+
+    const handleFilterChange = (e) => {
+        const value = e.target.value;
+        setDepartmentFilter(value);
+        filterDesignations(value);
     };
 
     const resetForm = () => {
@@ -277,6 +304,30 @@ const DesignationManagement = () => {
                     </div>
 
                     <div className="flex-1 p-8 overflow-auto">
+                        {/* Filter Section */}
+                        <div className="mb-6 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <Filter className="w-5 h-5 text-gray-400" />
+                                    </div>
+                                    <select
+                                        value={departmentFilter}
+                                        onChange={handleFilterChange}
+                                        className="appearance-none bg-white border border-gray-300 text-gray-700 py-2 pl-10 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                    >
+                                        <option value="all">All Departments</option>
+                                        {uniqueDepartments.map((dept, index) => (
+                                            <option key={index} value={dept}>{dept}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Enhanced Table */}
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
                             <table className="min-w-full divide-y divide-gray-100">
@@ -338,7 +389,11 @@ const DesignationManagement = () => {
                                                             <Briefcase className="w-12 h-12 text-gray-500" />
                                                         </div>
                                                         <h3 className="text-lg font-semibold text-gray-900 mb-2">No designations available</h3>
-                                                        <p className="text-gray-500">Get started by creating your first designation using the form on the right.</p>
+                                                        <p className="text-gray-500">
+                                                            {departmentFilter === 'all' 
+                                                                ? "Get started by creating your first designation using the form on the right."
+                                                                : "No designations found for the selected department."}
+                                                        </p>
                                                     </div>
                                                 </td>
                                             </tr>

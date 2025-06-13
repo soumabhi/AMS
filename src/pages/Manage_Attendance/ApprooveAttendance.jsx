@@ -4,9 +4,26 @@ import {
   FileText, ChevronDown, ChevronUp, Search, Download, 
   Edit2, ChevronRight, ChevronLeft, Loader, Info
 } from 'lucide-react';
-import Toast from '../../components/Toast';
 
-// Dummy data (same as before)
+// Toast Component
+const Toast = ({ message, type, isVisible, onClose }) => {
+  if (!isVisible) return null;
+  
+  const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+  
+  return (
+    <div className={`fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity`}>
+      <div className="flex items-center">
+        <span>{message}</span>
+        <button onClick={onClose} className="ml-2">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Dummy data
 const dummyAttendanceRequests = [
   {
     id: 'att-001',
@@ -129,7 +146,6 @@ const AttendanceApproval = ({ employees = [] }) => {
   const [statusFilter, setStatusFilter] = useState('Pending');
   const [actionModalVisible, setActionModalVisible] = useState(false);
   const [currentRequest, setCurrentRequest] = useState(null);
-  const [expandedRows, setExpandedRows] = useState([]);
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
   const [formData, setFormData] = useState({
     requested_clock_in: '',
@@ -201,13 +217,10 @@ const AttendanceApproval = ({ employees = [] }) => {
   // Export to Excel functionality
   const exportToExcel = () => {
     setExportLoading(true);
-    // In a real app, you would generate and download an Excel file here
-    // For this example, we'll just simulate the export
     setTimeout(() => {
       showToast('Attendance requests exported successfully');
       setExportLoading(false);
       
-      // Create a CSV file (simplified example)
       const headers = ['Sl No', 'Employee ID', 'Name', 'Date', 'Status', 'Requested In', 'Requested Out', 'Reason'];
       const csvContent = [
         headers.join(','),
@@ -268,6 +281,11 @@ const AttendanceApproval = ({ employees = [] }) => {
   // Open action modal with request details
   const openActionModal = (request) => {
     setCurrentRequest(request);
+    setFormData({
+      requested_clock_in: request.requested_clock_in || '',
+      requested_clock_out: request.requested_clock_out || '',
+      notes: ''
+    });
     setActionModalVisible(true);
   };
 
@@ -281,8 +299,7 @@ const AttendanceApproval = ({ employees = [] }) => {
   };
 
   // Handle edit form submission
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
+  const handleEditSubmit = () => {
     setLoading(true);
     setTimeout(() => {
       const updatedRequests = attendanceRequests.map(req => 
@@ -302,51 +319,18 @@ const AttendanceApproval = ({ employees = [] }) => {
     }, 800);
   };
 
-  // Toggle row expansion
-  const toggleRowExpansion = (id) => {
-    setExpandedRows(prev => 
-      prev.includes(id) 
-        ? prev.filter(rowId => rowId !== id) 
-        : [...prev, id]
-    );
-  };
-
   // Status badge component
   const StatusBadge = ({ status }) => {
     const statusClasses = {
-      'Pending': 'bg-yellow-100 text-yellow-800',
-      'Approved': 'bg-green-100 text-green-800',
-      'Rejected': 'bg-red-100 text-red-800'
+      'Pending': 'bg-amber-100 text-amber-700 border-amber-200',
+      'Approved': 'bg-green-100 text-green-700 border-green-200',
+      'Rejected': 'bg-red-100 text-red-700 border-red-200'
     };
     
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClasses[status]}`}>
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${statusClasses[status]}`}>
         {status}
       </span>
-    );
-  };
-
-  // Time comparison component
-  const TimeComparison = ({ current, requested, type }) => {
-    const changed = current && current !== requested;
-    return (
-      <div className="flex items-center justify-center">
-        <Clock className="w-4 h-4 mr-1 text-gray-500" />
-        <span className="font-medium">{type}:</span>
-        <span className={`ml-1 ${changed ? 'text-orange-600' : 'text-gray-700'}`}>
-          {requested}
-        </span>
-        {changed && (
-          <span className="ml-1 text-xs bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">
-            Changed
-          </span>
-        )}
-        {!current && (
-          <span className="ml-1 text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">
-            Missing
-          </span>
-        )}
-      </div>
     );
   };
 
@@ -361,78 +345,78 @@ const AttendanceApproval = ({ employees = [] }) => {
 
       <div className="p-6">
         {/* Header */}
-       <div className="mb-8">
-  <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-    <Clock className="w-6 h-6 mr-2 text-blue-600" />
-    Attendance Approval
-  </h1>
-  <p className="text-gray-600 mt-1">
-    Review and approve attendance correction requests from employees
-  </p>
-</div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+            <Clock className="w-6 h-6 mr-2 text-blue-600" />
+            Attendance Approval
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Review and approve attendance correction requests from employees
+          </p>
+        </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-blue-50 text-blue-600 mr-4">
-                <FileText className="w-6 h-6" />
+              <div className="p-2 rounded-lg bg-blue-50 text-blue-600 mr-3">
+                <FileText className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-center">Total Requests</p>
-                <p className="text-2xl font-bold text-gray-900 text-center">{stats.totalRequests}</p>
+                <p className="text-xs text-gray-500">Total Requests</p>
+                <p className="text-xl font-bold text-gray-900">{stats.totalRequests}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-yellow-50 text-yellow-600 mr-4">
-                <AlertCircle className="w-6 h-6" />
+              <div className="p-2 rounded-lg bg-amber-50 text-amber-600 mr-3">
+                <AlertCircle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-center">Pending Review</p>
-                <p className="text-2xl font-bold text-gray-900 text-center">{stats.pendingRequests}</p>
+                <p className="text-xs text-gray-500">Pending Review</p>
+                <p className="text-xl font-bold text-gray-900">{stats.pendingRequests}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-red-50 text-red-600 mr-4">
-                <X className="w-6 h-6" />
+              <div className="p-2 rounded-lg bg-red-50 text-red-600 mr-3">
+                <X className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-center">Missing Punch</p>
-                <p className="text-2xl font-bold text-gray-900 text-center">{stats.missingPunch}</p>
+                <p className="text-xs text-gray-500">Missing Punch</p>
+                <p className="text-xl font-bold text-gray-900">{stats.missingPunch}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-purple-50 text-purple-600 mr-4">
-                <Edit2 className="w-6 h-6" />
+              <div className="p-2 rounded-lg bg-purple-50 text-purple-600 mr-3">
+                <Edit2 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 text-center">Time Corrections</p>
-                <p className="text-2xl font-bold text-gray-900 text-center">{stats.timeCorrectionRequests}</p>
+                <p className="text-xs text-gray-500">Time Corrections</p>
+                <p className="text-xl font-bold text-gray-900">{stats.timeCorrectionRequests}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {/* Filters and Actions */}
-          <div className="p-5 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex-1 w-full sm:w-auto">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search requests..."
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   value={searchText}
                   onChange={(e) => handleSearch(e.target.value)}
                 />
@@ -442,7 +426,7 @@ const AttendanceApproval = ({ employees = [] }) => {
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="relative">
                 <select
-                  className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
                   value={statusFilter}
                   onChange={(e) => handleStatusChange(e.target.value)}
                 >
@@ -457,7 +441,7 @@ const AttendanceApproval = ({ employees = [] }) => {
               <button
                 onClick={exportToExcel}
                 disabled={exportLoading}
-                className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors disabled:opacity-50 text-sm"
               >
                 {exportLoading ? (
                   <Loader className="w-4 h-4 mr-2 animate-spin" />
@@ -474,25 +458,25 @@ const AttendanceApproval = ({ employees = [] }) => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sl No
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    #
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Employee
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Shift
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Time Request
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -500,118 +484,95 @@ const AttendanceApproval = ({ employees = [] }) => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredRequests.length > 0 ? (
                   filteredRequests.map((request, index) => (
-                    <React.Fragment key={request.id}>
-                      <tr className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {index + 1}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center justify-center">
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900 text-center">
-                                {request.name}
-                              </div>
-                              <div className="text-sm text-gray-500 text-center">
-                                {request.department} • {request.emp_id}
-                              </div>
-                            </div>
+                    <tr key={request.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {request.name}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 text-center">
-                            {new Date(request.date).toLocaleDateString()}  ({new Date(request.date).toLocaleDateString('en-US', { weekday: 'short' })})
-
+                          <div className="text-xs text-gray-500">
+                            {request.department} • {request.emp_id}
                           </div>
-                          <div className="text-sm text-gray-500 text-center">
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {new Date(request.date).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(request.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{request.shift_name}</div>
+                        <div className="text-xs text-gray-500">
+                          {request.shift_start} - {request.shift_end}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="text-sm space-y-1">
+                          <div className="flex items-center">
+                            <span className="text-xs text-gray-500 w-6">In:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {request.requested_clock_in}
+                            </span>
+                            {!request.clock_in_time && (
+                              <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                                Missing
+                              </span>
+                            )}
+                            {request.clock_in_time && request.clock_in_time !== request.requested_clock_in && (
+                              <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">
+                                Changed
+                              </span>
+                            )}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 text-center">
-                            {request.shift_name} ({request.shift_start} - {request.shift_end})
+                          <div className="flex items-center">
+                            <span className="text-xs text-gray-500 w-6">Out:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {request.requested_clock_out}
+                            </span>
+                            {!request.clock_out_time && (
+                              <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                                Missing
+                              </span>
+                            )}
+                            {request.clock_out_time && request.clock_out_time !== request.requested_clock_out && (
+                              <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">
+                                Changed
+                              </span>
+                            )}
                           </div>
-                        
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm space-y-1">
-                            <TimeComparison 
-                              current={request.clock_in_time} 
-                              requested={request.requested_clock_in} 
-                              type="In" 
-                            />
-                            <TimeComparison 
-                              current={request.clock_out_time} 
-                              requested={request.requested_clock_out} 
-                              type="Out" 
-                            />
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <StatusBadge status={request.status} />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <div className="flex justify-center items-center space-x-2">
-                            {/* {<button
-                              onClick={() => toggleRowExpansion(request.id)}
-                              className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
-                            >
-                              {expandedRows.includes(request.id) ? (
-                                <ChevronUp className="w-5 h-5" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5" />
-                              )}
-                            </button> } */}
-                            
-                            <button
-                              onClick={() => openActionModal(request)}
-                              className="text-gray-600 hover:text-gray-900 p-1 rounded hover:bg-gray-100"
-                            >
-                              <Info className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      
-                      {/* Expanded row details */}
-                      {/* {expandedRows.includes(request.id) && (
-                        <tr>
-                          <td colSpan="7" className="px-6 py-4 bg-gray-50">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <h3 className="text-sm font-medium text-gray-900 mb-2 text-center">Reason for Correction</h3>
-                                <p className="text-sm text-gray-700 bg-gray-100 p-3 rounded-lg text-center">
-                                  {request.reason}
-                                </p>
-                              </div>
-                              <div>
-                                <h3 className="text-sm font-medium text-gray-900 mb-2 text-center">Details</h3>
-                                <div className="text-sm text-gray-700 space-y-1 text-center">
-                                  <p><span className="font-medium">Submitted:</span> {new Date(request.submitted_on).toLocaleDateString()}</p>
-                                  <p><span className="font-medium">Manager:</span> {request.manager_name}</p>
-                                  <p>
-                                    <span className="font-medium">Evidence:</span> 
-                                    {request.supporting_evidence ? (
-                                      <span className="ml-1 text-green-600">Provided</span>
-                                    ) : (
-                                      <span className="ml-1 text-yellow-600">Not Provided</span>
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )} */}
-                    </React.Fragment>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <StatusBadge status={request.status} />
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-center">
+                        <button
+                          onClick={() => openActionModal(request)}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors"
+                        >
+                          <Info className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center">
+                    <td colSpan="7" className="px-6 py-8 text-center">
                       <div className="flex flex-col items-center justify-center">
-                        <FileText className="w-12 h-12 text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">
+                        <FileText className="w-8 h-8 text-gray-400 mb-2" />
+                        <h3 className="text-sm font-medium text-gray-900 mb-1">
                           No attendance requests found
                         </h3>
-                        <p className="text-gray-500 max-w-md text-center">
+                        <p className="text-xs text-gray-500 max-w-md text-center">
                           {searchText 
                             ? 'Try adjusting your search or filter to find what you\'re looking for.'
                             : 'When employees submit attendance corrections, they will appear here.'}
@@ -626,237 +587,264 @@ const AttendanceApproval = ({ employees = [] }) => {
 
           {/* Pagination */}
           {filteredRequests.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Previous
-                </button>
-                <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Next
-                </button>
+            <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+              <div className="text-sm text-gray-700">
+                Showing <span className="font-medium">1</span> to <span className="font-medium">5</span> of{' '}
+                <span className="font-medium">{filteredRequests.length}</span> results
               </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700 text-center">
-                    Showing <span className="font-medium">1</span> to <span className="font-medium">5</span> of{' '}
-                    <span className="font-medium">{filteredRequests.length}</span> results
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                      <span className="sr-only">Previous</span>
-                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                    </button>
-                    <button
-                      aria-current="page"
-                      className="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
-                    >
-                      1
-                    </button>
-                    <button className="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                      2
-                    </button>
-                    <button className="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                      3
-                    </button>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                      ...
-                    </span>
-                    <button className="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                      8
-                    </button>
-                    <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                      <span className="sr-only">Next</span>
-                      <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                    </button>
-                  </nav>
-                </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button className="bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-3 py-2 border text-sm font-medium">
+                    1
+                  </button>
+                  <button className="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-3 py-2 border text-sm font-medium">
+                    2
+                  </button>
+                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </nav>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Action Modal - Consolidated all actions */}
-{actionModalVisible && currentRequest && (
-  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Attendance Request</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            {currentRequest.name} • {currentRequest.emp_id}
-          </p>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          {/* Date & Shift Information */}
-          <div className="text-right">
-            <div className="text-sm font-semibold text-gray-900 flex items-center">
-              <Calendar className="w-4 h-4 mr-1 text-green-600" />
-              {new Date(currentRequest.date).toLocaleDateString()} • {new Date(currentRequest.date).toLocaleDateString('en-US', { weekday: 'long' })}
-            </div>
-            <div className="text-xs text-gray-600 flex items-center mt-1">
-              <Clock className="w-3 h-3 mr-1 text-green-600" />
-              {currentRequest.shift_name}: {currentRequest.shift_start} - {currentRequest.shift_end}
-            </div>
-          </div>
-          
-          <button
-            onClick={() => setActionModalVisible(false)}
-            className="text-gray-400 hover:text-gray-600 p-1 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-      
-      <div className="p-6 space-y-6">
-        {/* Time Comparison */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-            <h4 className="text-sm font-semibold text-red-800 mb-3">Current</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>In:</span>
-                <span className="font-medium">{currentRequest.clock_in_time || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Out:</span>
-                <span className="font-medium">{currentRequest.clock_out_time || 'N/A'}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-            <h4 className="text-sm font-semibold text-green-800 mb-3">Requested</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>In:</span>
-                <span className="font-medium">{currentRequest.requested_clock_in || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Out:</span>
-                <span className="font-medium">{currentRequest.requested_clock_out || 'N/A'}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Reason */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-gray-800 mb-2">Reason</h4>
-          <p className="text-sm text-gray-700">{currentRequest.reason || 'No reason provided'}</p>
-        </div>
-        
-        {/* Edit Form for Pending Requests */}
-        {currentRequest.status === 'Pending' && (
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-            <h4 className="text-sm font-semibold text-blue-800 mb-3">Edit Times</h4>
-            <div className="grid grid-cols-2 gap-3 mb-3">
+      {/* Action Modal */}
+      {actionModalVisible && currentRequest && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Clock In</label>
-                <input
-                  type="time"
-                  name="requested_clock_in"
-                  value={formData?.requested_clock_in || ''}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
+                <h2 className="text-lg font-bold text-gray-900">Attendance Request</h2>
+                <p className="text-sm text-gray-600">
+                  {currentRequest.name} • {currentRequest.emp_id}
+                </p>
               </div>
+              
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <div className="text-sm font-semibold text-gray-900 flex items-center">
+                    <Calendar className="w-4 h-4 mr-1 text-blue-600" />
+                    {new Date(currentRequest.date).toLocaleDateString()}
+                  </div>
+                  <div className="text-xs text-gray-600 flex items-center mt-1">
+                    <Clock className="w-3 h-3 mr-1 text-blue-600" />
+                    {currentRequest.shift_name}: {currentRequest.shift_start} - {currentRequest.shift_end}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setActionModalVisible(false)}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4 space-y-4">
+              {/* Time Comparison */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-red-50 rounded-lg p-3 border border-red-200">
+                  <h4 className="text-sm font-semibold text-red-800 mb-2">Current</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>In:</span>
+                      <span className="font-medium">{currentRequest.clock_in_time || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Out:</span>
+                      <span className="font-medium">{currentRequest.clock_out_time || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                  <h4 className="text-sm font-semibold text-green-800 mb-2">Requested</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>In:</span>
+                      <span className="font-medium">{currentRequest.requested_clock_in}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Out:</span>
+                      <span className="font-medium">{currentRequest.requested_clock_out}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Employee Details */}
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Employee Details</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Department:</span>
+                    <span className="ml-2 font-medium">{currentRequest.department}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Position:</span>
+                    <span className="ml-2 font-medium">{currentRequest.position}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Manager:</span>
+                    <span className="ml-2 font-medium">{currentRequest.manager_name}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Submitted:</span>
+                    <span className="ml-2 font-medium">{new Date(currentRequest.submitted_on).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reason */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Clock Out</label>
-                <input
-                  type="time"
-                  name="requested_clock_out"
-                  value={formData?.requested_clock_out || ''}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Reason for Request</h4>
+                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                  <p className="text-sm text-gray-700">{currentRequest.reason}</p>
+                </div>
               </div>
+
+              {/* Supporting Evidence */}
+              {currentRequest.supporting_evidence && (
+                <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                  <span className="text-sm text-green-800 font-medium">Supporting evidence provided</span>
+                </div>
+              )}
+
+              {/* Edit Times Section */}
+              {currentRequest.status === 'Pending' && (
+                <div className="space-y-4 border-t pt-4">
+                  <h4 className="text-sm font-semibold text-gray-800">Edit Time Request (Optional)</h4>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Clock In Time
+                      </label>
+                      <input
+                        type="time"
+                        name="requested_clock_in"
+                        value={formData.requested_clock_in}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Clock Out Time
+                      </label>
+                      <input
+                        type="time"
+                        name="requested_clock_out"
+                        value={formData.requested_clock_out}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Admin Notes (Optional)
+                    </label>
+                    <textarea
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleInputChange}
+                      rows={3}
+                      placeholder="Add any notes about this approval..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Admin Notes</label>
-              <textarea
-                name="notes"
-                value={formData?.notes || ''}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
-                placeholder="Add admin notes..."
-              />
-            </div>
+
+            {/* Footer Actions */}
+            {currentRequest.status === 'Pending' && (
+              <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button
+                  onClick={() => setActionModalVisible(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                
+                <button
+                  onClick={() => rejectRequest(currentRequest.id)}
+                  className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <X className="w-4 h-4 mr-2" />
+                  )}
+                  Reject
+                </button>
+                
+                <button
+                  onClick={() => {
+                    if (formData.requested_clock_in !== currentRequest.requested_clock_in || 
+                        formData.requested_clock_out !== currentRequest.requested_clock_out ||
+                        formData.notes) {
+                      handleEditSubmit();
+                    } else {
+                      approveRequest(currentRequest.id);
+                    }
+                  }}
+                  className="px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Loader className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                  )}
+                  {(formData.requested_clock_in !== currentRequest.requested_clock_in || 
+                    formData.requested_clock_out !== currentRequest.requested_clock_out ||
+                    formData.notes) ? 'Update & Approve' : 'Approve'}
+                </button>
+              </div>
+            )}
+
+            {/* Status Display for Non-Pending Requests */}
+            {currentRequest.status !== 'Pending' && (
+              <div className="p-4 border-t border-gray-200">
+                <div className="flex items-center justify-center">
+                  <div className={`flex items-center px-4 py-2 rounded-lg ${
+                    currentRequest.status === 'Approved' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {currentRequest.status === 'Approved' ? (
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                    ) : (
+                      <X className="w-5 h-5 mr-2" />
+                    )}
+                    Request {currentRequest.status}
+                  </div>
+                </div>
+                {currentRequest.admin_notes && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <h5 className="text-sm font-medium text-gray-800 mb-1">Admin Notes:</h5>
+                    <p className="text-sm text-gray-600">{currentRequest.admin_notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      
-      {/* Action Buttons */}
-      <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={() => setActionModalVisible(false)}
-            className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 text-sm font-medium transition-colors"
-          >
-            Close
-          </button>
-          
-          {currentRequest.status === 'Pending' && (
-            <>
-              <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to reject this request?')) {
-                    rejectRequest?.(currentRequest.id);
-                  }
-                }}
-                disabled={loading}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center transition-colors"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Reject
-              </button>
-              
-              <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to approve this request?')) {
-                    approveRequest?.(currentRequest.id);
-                  }
-                }}
-                disabled={loading}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center transition-colors"
-              >
-                {loading ? (
-                  <Loader className="w-4 h-4 mr-1 animate-spin" />
-                ) : (
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                )}
-                Approve
-              </button>
-              
-              <button
-                onClick={() => {
-                  if (handleEditSubmit) {
-                    handleEditSubmit();
-                  }
-                }}
-                disabled={loading}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center transition-colors"
-              >
-                {loading ? (
-                  <Loader className="w-4 h-4 mr-1 animate-spin" />
-                ) : (
-                  <Edit2 className="w-4 h-4 mr-1" />
-                )}
-                Update
-              </button>
-            </>
-          )}
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 };

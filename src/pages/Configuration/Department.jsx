@@ -1,51 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Users, AlertCircle, CheckCircle, X } from 'lucide-react';
-import Toast from '../../components/Toast'
-
-
-// const Toast = ({ message, type, isVisible, onClose }) => {
-//     useEffect(() => {
-//         if (isVisible) {
-//             const timer = setTimeout(() => {
-//                 onClose();
-//             }, 4000);
-//             return () => clearTimeout(timer);
-//         }
-//     }, [isVisible, onClose]);
-
-//     if (!isVisible) return null;
-
-//     const bgColor = type === 'success'
-//         ? 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300'
-//         : 'bg-gradient-to-r from-gray-100 to-gray-200 border-gray-400';
-//     const textColor = type === 'success' ? 'text-gray-800' : 'text-gray-900';
-//     const IconComponent = type === 'success' ? CheckCircle : AlertCircle;
-
-//     return (
-//         <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-top-4 duration-300">
-//             <div className={`max-w-sm w-full ${bgColor} border rounded-xl shadow-lg backdrop-blur-sm p-4`}>
-//                 <div className="flex items-center">
-//                     <div className="flex-shrink-0">
-//                         <IconComponent className="h-5 w-5 text-gray-700" />
-//                     </div>
-//                     <div className="ml-3">
-//                         <p className={`text-sm font-medium ${textColor}`}>
-//                             {message}
-//                         </p>
-//                     </div>
-//                     <div className="ml-auto pl-3">
-//                         <button
-//                             onClick={onClose}
-//                             className="inline-flex rounded-lg p-1.5 text-gray-400 hover:bg-white/50 focus:outline-none transition-colors"
-//                         >
-//                             <X className="h-4 w-4" />
-//                         </button>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
+import Toast from '../../components/Toast';
 
 const TableSkeleton = () => {
     return (
@@ -63,9 +18,6 @@ const TableSkeleton = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                         <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-16"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-20"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                         <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-16"></div>
@@ -140,8 +92,7 @@ const DepartmentManagement = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formData, setFormData] = useState({
         departmentName: "",
-        status: "Active",
-        remark: ""
+        status: "Active"
     });
     const [validationErrors, setValidationErrors] = useState({});
 
@@ -154,10 +105,6 @@ const DepartmentManagement = () => {
         setTimeout(() => {
             setMessage({ type: '', text: '' });
         }, 4000);
-    };
-
-    const hideToast = () => {
-        setToast({ ...toast, isVisible: false });
     };
 
     const fetchDepartments = async () => {
@@ -178,17 +125,26 @@ const DepartmentManagement = () => {
         }
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-        setValidationErrors({
-            ...validationErrors,
-            [name]: ''
-        });
-    };
+   const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Only process if it's the departmentName field and there's a value
+    const processedValue = (name === 'departmentName' && value) 
+        ? value.split(' ').map(word => 
+            word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ''
+        ).join(' ')
+        : value;
+
+    setFormData(prev => ({
+        ...prev,
+        [name]: processedValue
+    }));
+    
+    setValidationErrors(prev => ({
+        ...prev,
+        [name]: ''
+    }));
+};
 
     const validateForm = () => {
         const errors = {};
@@ -212,8 +168,7 @@ const DepartmentManagement = () => {
         try {
             const finalFormData = {
                 departmentName: formData.departmentName.trim(),
-                status: formData.status,
-                remark: formData.remark
+                status: formData.status
             };
 
             if (editingDepartment) {
@@ -253,16 +208,14 @@ const DepartmentManagement = () => {
         setEditingDepartment(department);
         setFormData({
             departmentName: department.departmentName,
-            status: department.status === 1 || department.status === "1" ? "Active" : "Inactive",
-            remark: department.remark || ""
+            status: department.status === 1 || department.status === "1" ? "Active" : "Inactive"
         });
     };
 
     const resetForm = () => {
         setFormData({
             departmentName: "",
-            status: "Active",
-            remark: ""
+            status: "Active"
         });
         setValidationErrors({});
         setEditingDepartment(null);
@@ -328,9 +281,6 @@ const DepartmentManagement = () => {
                                             Status
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                            Remark
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
@@ -340,70 +290,65 @@ const DepartmentManagement = () => {
                                     <TableSkeleton />
                                 ) : (
                                     <tbody className="bg-white divide-y divide-gray-50">
-  {departments.map((department, index) => (
-    <tr
-      key={department.departmentId}
-      className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200"
-    >
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-sm font-bold">
-          {index + 1}
-        </div>
-      </td>
+                                        {departments.map((department, index) => (
+                                            <tr
+                                                key={department.departmentId}
+                                                className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200"
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                                        {index + 1}
+                                                    </div>
+                                                </td>
 
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-        {department.departmentId}
-      </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                                                    {department.departmentId}
+                                                </td>
 
-      <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">
-        {department.departmentName}
-      </td>
+                                                <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">
+                                                    {department.departmentName}
+                                                </td>
 
-      <td className="px-6 py-4 whitespace-nowrap">
-        <span
-          className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-            department.status
-          )}`}
-        >
-          {department.status === 1 || department.status === "1" || department.status === "Active"
-            ? "Active"
-            : "Inactive"}
-        </span>
-      </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span
+                                                        className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                                                            department.status
+                                                        )}`}
+                                                    >
+                                                        {department.status === 1 || department.status === "1" || department.status === "Active"
+                                                            ? "Active"
+                                                            : "Inactive"}
+                                                    </span>
+                                                </td>
 
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 truncate max-w-xs">
-        {department.remark}
-      </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <button
+                                                        onClick={() => handleEdit(department)}
+                                                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg hover:from-gray-200 hover:to-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                                    >
+                                                        <Edit className="w-4 h-4 mr-2" />
+                                                        Edit
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
 
-      <td className="px-6 py-4 whitespace-nowrap">
-        <button
-          onClick={() => handleEdit(department)}
-          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg hover:from-gray-200 hover:to-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
-        >
-          <Edit className="w-4 h-4 mr-2" />
-          Edit
-        </button>
-      </td>
-    </tr>
-  ))}
-
-  {!loading && departments.length === 0 && (
-    <tr>
-      <td colSpan={6} className="px-6 py-16 text-center">
-        <div className="text-center">
-          <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
-            <Users className="w-12 h-12 text-gray-500" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No departments available</h3>
-          <p className="text-gray-500">
-            Get started by creating your first department using the form on the right.
-          </p>
-        </div>
-      </td>
-    </tr>
-  )}
-</tbody>
-
+                                        {!loading && departments.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-16 text-center">
+                                                    <div className="text-center">
+                                                        <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+                                                            <Users className="w-12 h-12 text-gray-500" />
+                                                        </div>
+                                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No departments available</h3>
+                                                        <p className="text-gray-500">
+                                                            Get started by creating your first department using the form on the right.
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
                                 )}
                             </table>
                         </div>
@@ -444,32 +389,25 @@ const DepartmentManagement = () => {
                                 className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
                             />
 
-                            <Select
-                                label="Status *"
-                                name="status"
-                                value={formData.status}
-                                onChange={handleInputChange}
-                                options={[
-                                    { value: "Active", label: "Active" },
-                                    { value: "Inactive", label: "Inactive" }
-                                ]}
-                                className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
-                            />
-
-                            <Input
-                                label="Remark"
-                                name="remark"
-                                value={formData.remark}
-                                onChange={handleInputChange}
-                                placeholder="Enter any additional notes or remarks"
-                                className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
-                            />
+                            {editingDepartment && (
+                                <Select
+                                    label="Status *"
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleInputChange}
+                                    options={[
+                                        { value: "Active", label: "Active" },
+                                        { value: "Inactive", label: "Inactive" }
+                                    ]}
+                                    className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
+                                />
+                            )}
 
                             <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
                                 <div className="flex items-start">
                                     <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center mr-3 mt-0.5">
-                                                                            <AlertCircle className="w-4 h-4 text-white" />
-                                                                        </div>
+                                        <AlertCircle className="w-4 h-4 text-white" />
+                                    </div>
                                     <div className="text-sm text-gray-800">
                                         <p className="font-semibold mb-2">Guidelines:</p>
                                         <ul className="space-y-1">
@@ -483,7 +421,7 @@ const DepartmentManagement = () => {
                                             </li>
                                             <li className="flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-                                                <span>Status determines department availability</span>
+                                                <span>New departments are automatically set to Active</span>
                                             </li>
                                         </ul>
                                     </div>

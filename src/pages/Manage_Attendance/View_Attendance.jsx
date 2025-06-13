@@ -600,7 +600,7 @@ const AttendancePage = () => {
                       <th 
                         key={header} 
                         scope="col" 
-                        className="px-6 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider"
+                        className="px-6 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
                       >
                         {header}
                       </th>
@@ -611,42 +611,42 @@ const AttendancePage = () => {
                   {currentItems.length > 0 ? (
                     currentItems.map((emp) => (
                       <tr key={emp.empId} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-2 whitespace-nowrap text-center">
+                        <td className="px-6 py-2 whitespace-nowrap text-left">
                           {emp.slNo}
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center">
+                        <td className="px-6 py-2 whitespace-nowrap text-left">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{emp.empName}</div>
                             <div className="text-xs text-gray-500">{emp.designation}/ {emp.branch}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-500">
+                        <td className="px-6 py-2 whitespace-nowrap text-left text-sm text-gray-500">
                           {emp.shift}
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-500">
+                        <td className="px-6 py-2 whitespace-nowrap text-left text-sm text-gray-500">
                           {emp.date}
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-900">
+                        <td className="px-6 py-2 whitespace-nowrap text-left text-sm text-gray-900">
                           {emp.inTime}
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm text-gray-900">
+                        <td className="px-6 py-2 whitespace-nowrap text-left text-sm text-gray-900">
                           {emp.outTime}
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm font-medium text-gray-900">
+                        <td className="px-6 py-2 whitespace-nowrap text-left text-sm font-medium text-gray-900">
                           {emp.duration}
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center">
+                        <td className="px-6 py-2 whitespace-nowrap text-left">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getFlagBadgeColor(emp.flags)}`}>
                             {emp.flags}
                           </span>
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center">
+                        <td className="px-6 py-2 whitespace-nowrap text-left">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeColor(emp.status)}`}>
                             {getStatusIcon(emp.status)}
                             <span className="ml-1">{emp.status}</span>
                           </span>
                         </td>
-                        <td className="px-6 py-2 whitespace-nowrap text-center text-sm font-medium">
+                        <td className="px-6 py-2 whitespace-nowrap text-left text-sm font-medium">
                           <button 
                             onClick={() => openEditModal(emp)}
                             className="text-gray-600 hover:text-gray-900"
@@ -658,8 +658,8 @@ const AttendancePage = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="10" className="px-6 py-8 text-center">
-                        <div className="text-center">
+                      <td colSpan="10" className="px-6 py-8 text-left">
+                        <div className="text-left">
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">No records found</h3>
                           <p className="text-gray-500">Try adjusting your search or filter criteria</p>
                         </div>

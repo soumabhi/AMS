@@ -228,132 +228,120 @@ const LeaveManagement = () => {
                 </div>
 
                 {/* Leave Requests Table */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-100">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                    #
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                    Employee
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                    Date Period
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                    Days
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                    Notes
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-50">
-                            {currentRequests.length > 0 ? (
-                                currentRequests.map((request, index) => (
-                                    <tr key={request.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                                {indexOfFirstRequest + index + 1}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm font-medium text-gray-900">{request.name}</div>
-                                            <div className="text-xs text-gray-500">{request.designation} • {request.department}</div>
-                                            <div className="text-xs text-gray-400 mt-1">{request.empId}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-gray-400" />
-                                                <div>
-                                                    <div className="text-sm text-gray-900">
-                                                        {new Date(request.fromDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
-                                                        <span className="mx-1">-</span>
-                                                        {new Date(request.toDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        {new Date(request.fromDate).toLocaleDateString('en-US', { weekday: 'short' })}
-                                                        <span className="mx-1">→</span>
-                                                        {new Date(request.toDate).toLocaleDateString('en-US', { weekday: 'short' })}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-semibold text-gray-700">
-                                                {request.totalDays} {request.totalDays === 1 ? 'day' : 'days'}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(request.status)}`}>
-                                                {request.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-700 max-w-xs">
-                                                {request.remark}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="6" className="px-6 py-16 text-center">
-                                        <div className="text-center">
-                                            <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
-                                                <Calendar className="w-12 h-12 text-gray-500" />
-                                            </div>
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No leave requests found</h3>
-                                            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-
-                    {/* Pagination */}
-                    {filteredRequests.length > 0 && (
-                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-                            <div className="text-sm text-gray-500">
-                                Showing <span className="font-medium">{indexOfFirstRequest + 1}</span> to{' '}
-                                <span className="font-medium">
-                                    {Math.min(indexOfLastRequest, filteredRequests.length)}
-                                </span> of{' '}
-                                <span className="font-medium">{filteredRequests.length}</span> requests
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+    <table className="min-w-full divide-y divide-gray-100">
+        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+            <tr>
+                <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">#</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Employee</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Date Period</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Days</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Notes</th>
+            </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-50">
+            {currentRequests.length > 0 ? (
+                currentRequests.map((request, index) => (
+                    <tr key={request.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
+                        <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                {indexOfFirstRequest + index + 1}
                             </div>
-                            <div className="flex space-x-2">
-                                <button 
-                                    onClick={() => paginate(currentPage - 1)} 
-                                    disabled={currentPage === 1}
-                                    className={`p-2 border border-gray-200 rounded-lg ${currentPage === 1 ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                                    <button
-                                        key={number}
-                                        onClick={() => paginate(number)}
-                                        className={`px-3 py-1 border rounded-lg text-sm font-medium ${currentPage === number ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
-                                    >
-                                        {number}
-                                    </button>
-                                ))}
-                                <button 
-                                    onClick={() => paginate(currentPage + 1)} 
-                                    disabled={currentPage === totalPages}
-                                    className={`p-2 border border-gray-200 rounded-lg ${currentPage === totalPages ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
+                        </td>
+                        <td className="px-4 py-2">
+                            <div className="text-xs font-medium text-gray-900">{request.name}</div>
+                            <div className="text-2xs text-gray-500">{request.empId}• {request.designation} • {request.department}</div>
+                            <div className="text-2xs text-gray-400"></div>
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-gray-400" />
+                                <div>
+                                    <div className="text-xs text-gray-900">
+                                        {new Date(request.fromDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                                        <span className="mx-1">-</span>
+                                        {new Date(request.toDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                                    </div>
+                                    <div className="text-2xs text-gray-500">
+                                        {new Date(request.fromDate).toLocaleDateString('en-US', { weekday: 'short' })}
+                                        <span className="mx-1">→</span>
+                                        {new Date(request.toDate).toLocaleDateString('en-US', { weekday: 'short' })}
+                                    </div>
+                                </div>
                             </div>
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                            <div className="text-xs font-semibold text-gray-700">
+                                {request.totalDays} {request.totalDays === 1 ? 'day' : 'days'}
+                            </div>
+                        </td>
+                        <td className="px-4 py-2 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 inline-flex text-2xs leading-4 font-semibold rounded-full border ${getStatusColor(request.status)}`}>
+                                {request.status}
+                            </span>
+                        </td>
+                        <td className="px-4 py-2">
+                            <div className="text-xs text-gray-700 max-w-xs line-clamp-1">
+                                {request.remark}
+                            </div>
+                        </td>
+                    </tr>
+                ))
+            ) : (
+                <tr>
+                    <td colSpan="6" className="px-6 py-12 text-left">
+                        <div className="text-left">
+                            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-3">
+                                <Calendar className="w-10 h-10 text-gray-500" />
+                            </div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-1">No leave requests found</h3>
+                            <p className="text-xs text-gray-500">Try adjusting your search or filter criteria</p>
                         </div>
-                    )}
-                </div>
+                    </td>
+                </tr>
+            )}
+        </tbody>
+    </table>
+
+    {/* Pagination */}
+    {filteredRequests.length > 0 && (
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-2 flex items-center justify-between border-t border-gray-200">
+            <div className="text-xs text-gray-500">
+                Showing <span className="font-medium">{indexOfFirstRequest + 1}</span> to{' '}
+                <span className="font-medium">
+                    {Math.min(indexOfLastRequest, filteredRequests.length)}
+                </span> of{' '}
+                <span className="font-medium">{filteredRequests.length}</span> requests
+            </div>
+            <div className="flex space-x-1">
+                <button 
+                    onClick={() => paginate(currentPage - 1)} 
+                    disabled={currentPage === 1}
+                    className={`p-1 border border-gray-200 rounded-lg ${currentPage === 1 ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
+                >
+                    <ChevronLeft className="w-4 h-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                    <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`px-2 py-0.5 border rounded-lg text-xs font-medium ${currentPage === number ? 'bg-gray-800 text-white border-gray-800' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                    >
+                        {number}
+                    </button>
+                ))}
+                <button 
+                    onClick={() => paginate(currentPage + 1)} 
+                    disabled={currentPage === totalPages}
+                    className={`p-1 border border-gray-200 rounded-lg ${currentPage === totalPages ? 'text-gray-400 bg-gray-100 cursor-not-allowed' : 'text-gray-700 bg-white hover:bg-gray-50'}`}
+                >
+                    <ChevronRight className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    )}
+</div>
             </div>
         </div>
     );

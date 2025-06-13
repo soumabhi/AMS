@@ -20,7 +20,7 @@ const Toast = ({ message, type, isVisible, onClose }) => {
 
   return (
     <div className={getToastStyles()}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ">
         <span className="text-sm font-medium">{message}</span>
         <button onClick={onClose} className="ml-3 text-gray-600 hover:text-gray-800 focus:outline-none">
           <X className="w-4 h-4" />
@@ -414,7 +414,7 @@ const CandidateProfile = () => {
   const uniqueStatuses = [...new Set(allCandidates.map(c => c.status))];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-4 rounded-lg">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-4 rounded-lg text-left">
       <Toast
         message={message.text}
         type={message.type}
@@ -424,7 +424,7 @@ const CandidateProfile = () => {
 
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
-        <nav className="flex mb-4" aria-label="Breadcrumb">
+        <nav className="flex mb-4" aria-label="Breadcrumb ">
           <ol className="inline-flex items-center space-x-1 md:space-x-2">
             <li className="inline-flex items-center">
               <Home className="w-4 h-4 mr-1 text-gray-500" />
@@ -440,7 +440,7 @@ const CandidateProfile = () => {
         </nav>
 
         {/* Header with Search and Actions */}
-        <div className="border border-gray-300 rounded-lg mb-4 bg-gradient-to-r from-white via-gray-50 to-gray-100 shadow-lg backdrop-blur-sm">
+        <div className="border border-gray-300 rounded-lg mb-4 bg-gradient-to-r from-white via-gray-50 to-gray-100 shadow-lg backdrop-blur-sm text-left">
           <div className="p-4 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
               <div>
@@ -552,28 +552,28 @@ const CandidateProfile = () => {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 border-b border-gray-300">
                 <tr>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Position
                   </th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Experience
                   </th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Location
                   </th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Applied
                   </th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -581,8 +581,8 @@ const CandidateProfile = () => {
               <tbody className="bg-white divide-y divide-gray-100">
                 {getCurrentPageData.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-4 py-8 text-center">
-                      <div className="flex flex-col items-center">
+                    <td colSpan="8" className="px-4 py-8 text-left">
+                      <div className="flex flex-col items-left">
                         <AlertCircle className="w-10 h-10 text-gray-400 mb-3" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates found</h3>
                         <p className="text-gray-500">
@@ -604,8 +604,8 @@ const CandidateProfile = () => {
                 ) : (
                   getCurrentPageData.map((candidate) => (
                     <tr key={candidate.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                      <td className="px-4 py-2 text-center whitespace-nowrap">
-                        <div className="flex items-center">
+                      <td className="px-4 py-2 text-left whitespace-nowrap">
+                        <div className="flex items-left">
                           <div className="flex-shrink-0 h-8 w-8">
                             <div className={`h-8 w-8 rounded-full ${getAvatarGradient(candidate.name)} flex items-center justify-center shadow-md`}>
                               <span className="text-xs font-semibold text-white">
@@ -615,40 +615,40 @@ const CandidateProfile = () => {
                           </div>
                           <div className="ml-3">
                             <div className="text-sm font-semibold text-gray-900">{candidate.name}</div>
-                            <div className="text-xs text-gray-500 flex items-center">
-                              <Mail className="w-3 h-3 mr-1" />
+                            <div className="text-xs text-gray-500 flex items-left">
+                           
                               {candidate.email}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-2 text-center whitespace-nowrap">
+                      <td className="px-4 py-2 text-left whitespace-nowrap">
                         <div className="text-sm text-gray-700">{candidate.contactNumber}</div>
                       </td>
-                      <td className="px-4 py-2 text-center whitespace-nowrap">
+                      <td className="px-4 py-2 text-left whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{candidate.applyingFor}</div>
                       </td>
-                      <td className="px-4 py-2 text-center whitespace-nowrap">
+                      <td className="px-4 py-2 text-left whitespace-nowrap">
                         <div className="text-sm text-gray-700">{candidate.experience}</div>
                       </td>
-                      <td className="px-4 py-2 text-center whitespace-nowrap">
-                        <div className="text-sm text-gray-700 flex items-center">
-                          <MapPin className="w-3 h-3 mr-1 text-gray-400" />
+                      <td className="px-4 py-2 text-left whitespace-nowrap">
+                        <div className="text-sm text-gray-700 flex items-left">
+                        
                           {candidate.location}
                         </div>
                       </td>
-                      <td className="px-4 py-2 text-center whitespace-nowrap">
+                      <td className="px-4 py-2 text-left whitespace-nowrap">
                         <div className="text-sm text-gray-700 flex items-center">
                           <Calendar className="w-3 h-3 mr-1 text-gray-400" />
                           {formatDate(candidate.appliedDate)}
                         </div>
                       </td>
-                      <td className="px-4 py-2 text-center whitespace-nowrap">
+                      <td className="px-4 py-2 text-left whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${getStatusColor(candidate.status)}`}>
                           {candidate.status}
                         </span>
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-center text-sm font-medium">
+                      <td className="px-4 py-2 whitespace-nowrap text-left text-sm font-medium">
                         <button
                           onClick={() => handleViewDetails(candidate)}
                           className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-gray-700 bg-gradient-to-b from-white to-gray-100 hover:bg-gradient-to-b hover:from-gray-100 hover:to-gray-200 transition-all duration-200 shadow-sm"

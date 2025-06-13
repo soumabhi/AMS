@@ -970,19 +970,19 @@ const PayrollTable = () => {
                             <table className="min-w-full divide-y divide-gray-100">
                                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                                     <tr>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Emp ID
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Name
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Branch
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Position
                                         </th>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
@@ -994,27 +994,27 @@ const PayrollTable = () => {
                                     <tbody className="bg-white divide-y divide-gray-50">
                                         {currentEmployees.map((employee) => (
                                             <tr key={employee.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <td className="px-6 py-4 whitespace-nowrap text-left">
                                                     <div className="text-xs font-medium text-gray-900">
                                                         EMP{employee.id.toString().padStart(4, '0')}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <td className="px-6 py-4 whitespace-nowrap text-left">
                                                     <div className="text-xs font-medium text-gray-900">{employee.name}</div>
                                                     <div className="text-xs text-gray-500">{employee.email}</div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <td className="px-6 py-4 whitespace-nowrap text-left">
                                                     <span className="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border border-gray-200">
                                                         {employee.branch}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <td className="px-6 py-4 whitespace-nowrap text-left">
                                                     <div className="flex flex-col items-center">
                                                         <div className="text-xs text-gray-900">{employee.desg}</div>
                                                         <div className="text-xs text-gray-500">Band: {employee.jobband}</div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <td className="px-6 py-4 whitespace-nowrap text-left">
                                                     <button
                                                         onClick={() => handleEdit(employee)}
                                                         className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-xl hover:from-gray-200 hover:to-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -1028,8 +1028,8 @@ const PayrollTable = () => {
 
                                         {!loading && filteredEmployees.length === 0 && (
                                             <tr>
-                                                <td colSpan="6" className="px-6 py-16 text-center">
-                                                    <div className="text-center">
+                                                <td colSpan="6" className="px-6 py-16 text-left">
+                                                    <div className="text-left">
                                                         <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
                                                             {searchQuery ? (
                                                                 <Search className="w-12 h-12 text-gray-500" />

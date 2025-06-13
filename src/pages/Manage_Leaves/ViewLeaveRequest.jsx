@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import Toast from '../../components/Toast';
 
-// Dummy data remains the same as in your original code
 const dummyLeaveApplications = [
   {
     id: 'la-001',
@@ -310,10 +309,8 @@ const LeaveApplications = () => {
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
   const [remarks, setRemarks] = useState('');
 
-  // Get unique branches for filter
   const uniqueBranches = [...new Set(dummyLeaveApplications.map(app => app.branch))];
 
-  // Statistics for the dashboard
   const stats = {
     totalApplications: leaveApplications.length,
     pendingApplications: leaveApplications.filter(app => app.status === 'Pending').length,
@@ -325,7 +322,6 @@ const LeaveApplications = () => {
     annualLeaveApplications: leaveApplications.filter(app => app.leave_type === 'Annual Leave').length,
   };
 
-  // Initialize with dummy data
   useEffect(() => {
     setLeaveApplications(dummyLeaveApplications);
     filterApplications(dummyLeaveApplications, '', 'Pending', 'All');
@@ -339,7 +335,6 @@ const LeaveApplications = () => {
     setToast({ ...toast, isVisible: false });
   };
 
-  // Filter applications
   const filterApplications = (apps, text, status, branch) => {
     const filtered = apps.filter(app => 
       (status === 'All' || app.status === status) &&
@@ -440,46 +435,45 @@ const LeaveApplications = () => {
 
   const getLeaveTypeColor = (type) => {
     switch (type) {
-      case 'Sick Leave': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Annual Leave': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Emergency Leave': return 'bg-orange-100 text-orange-800 border-orange-200';
-      default: return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Sick Leave': return 'bg-black text-white border-red-200';
+      case 'Annual Leave': return 'bg-black text-white border-green-200';
+      case 'Emergency Leave': return 'bg-black text-white border-orange-200';
+      default: return 'bg-black text-white border-blue-200';
     }
   };
 
-  // Table Skeleton Loader
   const TableSkeleton = () => {
     return (
       <tbody className="bg-white divide-y divide-gray-100">
         {[...Array(5)].map((_, index) => (
           <tr key={index} className="animate-pulse">
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-8 mx-auto"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-6 mx-auto"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-24"></div>
-              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-32 mt-2"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-20"></div>
+              <div className="h-2 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-24 mt-1"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-16"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-12"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-20"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-16"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-24"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-20"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-16"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-5 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-12"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-20"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-16"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-24"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-20"></div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-              <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-16"></div>
+            <td className="px-3 py-2 whitespace-nowrap">
+              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-12"></div>
             </td>
           </tr>
         ))}
@@ -498,70 +492,70 @@ const LeaveApplications = () => {
 
       <div className="flex flex-col">
         {/* Header */}
-        <div className="p-8 bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 backdrop-blur-sm">
+        <div className="p-6 bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl h-10 font-bold bg-black bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-black bg-clip-text text-transparent">
                 Leave Request Management
               </h1>
-              <p className="text-gray-600 flex items-center gap-2">
-                <Users className="w-4 h-4" />
+              <p className="text-sm text-gray-600 flex items-center gap-2">
+                <Users className="w-3 h-3" />
                 Manage employee leave requests and approvals
               </p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm text-gray-500">Total Requests</p>
-                <p className="text-2xl font-bold text-gray-800">{leaveApplications.length}</p>
+                <p className="text-xs text-gray-500">Total Requests</p>
+                <p className="text-xl font-bold text-gray-800">{leaveApplications.length}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="px-8 pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="px-4 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-blue-50 rounded-full flex items-center justify-center mr-3">
-                  <FileText className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-100 to-blue-50 rounded-full flex items-center justify-center mr-3">
+                  <FileText className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Total Applications</p>
-                  <p className="text-xl font-bold text-gray-800">{stats.totalApplications}</p>
+                  <p className="text-xs font-medium text-gray-500">Total Applications</p>
+                  <p className="text-lg font-bold text-gray-800">{stats.totalApplications}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-yellow-100 to-yellow-50 rounded-full flex items-center justify-center mr-3">
-                  <Clock className="w-5 h-5 text-yellow-600" />
+                <div className="w-10 h-10 bg-gradient-to-r from-yellow-100 to-yellow-50 rounded-full flex items-center justify-center mr-3">
+                  <Clock className="w-4 h-4 text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Pending Review</p>
-                  <p className="text-xl font-bold text-gray-800">{stats.pendingApplications}</p>
+                  <p className="text-xs font-medium text-gray-500">Pending Review</p>
+                  <p className="text-lg font-bold text-gray-800">{stats.pendingApplications}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-red-100 to-red-50 rounded-full flex items-center justify-center mr-3">
-                  <Users className="w-5 h-5 text-red-600" />
+                <div className="w-10 h-10 bg-gradient-to-r from-red-100 to-red-50 rounded-full flex items-center justify-center mr-3">
+                  <Users className="w-4 h-4 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Sick Leave Requests</p>
-                  <p className="text-xl font-bold text-gray-800">{stats.sickLeaveApplications}</p>
+                  <p className="text-xs font-medium text-gray-500">Sick Leave Requests</p>
+                  <p className="text-lg font-bold text-gray-800">{stats.sickLeaveApplications}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-100 to-green-50 rounded-full flex items-center justify-center mr-3">
-                  <FileCheck className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-gradient-to-r from-green-100 to-green-50 rounded-full flex items-center justify-center mr-3">
+                  <FileCheck className="w-4 h-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Annual Leave Requests</p>
-                  <p className="text-xl font-bold text-gray-800">{stats.annualLeaveApplications}</p>
+                  <p className="text-xs font-medium text-gray-500">Annual Leave Requests</p>
+                  <p className="text-lg font-bold text-gray-800">{stats.annualLeaveApplications}</p>
                 </div>
               </div>
             </div>
@@ -569,21 +563,21 @@ const LeaveApplications = () => {
         </div>
 
         {/* Main Content */}
-        <div className="px-8 pb-8 flex-1">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div className="px-4 pb-4 flex-1">
+          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 overflow-hidden">
             {/* Filters */}
-            <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <h3 className="text-sm font-semibold text-gray-800">
                     Leave Applications ({filteredApplications.length})
                   </h3>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <select 
                     value={statusFilter}
                     onChange={(e) => handleStatusChange(e.target.value)}
-                    className="px-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                    className="px-3 py-1 text-xs border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500"
                   >
                     <option value="All">All Status</option>
                     <option value="Pending">Pending</option>
@@ -593,7 +587,7 @@ const LeaveApplications = () => {
                   <select 
                     value={branchFilter}
                     onChange={(e) => handleBranchChange(e.target.value)}
-                    className="px-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                    className="px-3 py-1 text-xs border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500"
                   >
                     <option value="All">All Branches</option>
                     {uniqueBranches.map(branch => (
@@ -606,23 +600,23 @@ const LeaveApplications = () => {
                       placeholder="Search applications..."
                       value={searchText}
                       onChange={(e) => handleSearch(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 w-full"
+                      className="pl-8 pr-3 py-1 text-xs border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500 w-full"
                     />
-                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                    <Search className="w-3 h-3 text-gray-400 absolute left-3 top-2" />
                   </div>
                   <button
                     onClick={exportToExcel}
                     disabled={exportLoading}
-                    className="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-xl hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-lg hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     {exportLoading ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
                         Exporting...
                       </>
                     ) : (
                       <>
-                        <Download className="w-4 h-4 mr-2" />
+                        <Download className="w-3 h-3 mr-1" />
                         Export
                       </>
                     )}
@@ -632,150 +626,150 @@ const LeaveApplications = () => {
             </div>
 
             {/* Table */}
-           <div className="overflow-x-auto p-4">
-  <table className="w-full border-collapse border border-gray-200 rounded-lg shadow-sm">
-    <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-      <tr>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          #
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Employee
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Branch
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Approver
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Leave Type
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Status
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Request Info
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Leave Credits
-        </th>
-        <th className="border border-gray-200 px-6 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wider">
-          Actions
-        </th>
-      </tr>
-    </thead>
+            <div className="overflow-x-auto p-2">
+              <table className="w-full border-collapse">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      #
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Employee
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Branch
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Approver
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Leave Type
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Request Info
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Leave Credits
+                    </th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
 
-    {loading ? (
-      <TableSkeleton />
-    ) : (
-      <tbody className="bg-white">
-        {filteredApplications.map((application, index) => (
-          <tr key={application.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-            <td className="border border-gray-200 px-6 py-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-sm font-bold">
-                {index + 1}
-              </div>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <div className="space-y-1">
-                <div className="font-medium text-sm"></div>
-                <div className="text-gray-700 font-semibold">{application.name}</div>
-                <div className="text-gray-500 text-xs"><b>{application.emp_id}</b>-{application.department}</div>
-              </div>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                <Home className="w-3 h-3 mr-2" />
-                {application.branch}
-              </span>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <div className="flex items-center">
-                <User className="w-4 h-4 mr-2 text-gray-500" />
-                <span className="text-sm">{application.approver}</span>
-              </div>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getLeaveTypeColor(application.leave_type)}`}>
-                {application.leave_type}
-              </span>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                {application.status}
-              </span>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <div className="text-xs space-y-1">
-                <div className="flex items-center">
-                  <Calendar className="w-3 h-3 mr-2 text-gray-500" />
-                  <span>
-                    {new Date(application.start_date).toLocaleDateString()} - {new Date(application.end_date).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <Clock className="w-3 h-3 mr-2 text-gray-500" />
-                  <span>{application.total_days} {application.total_days > 1 ? 'days' : 'day'}</span>
-                </div>
-              </div>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <div className="flex items-center space-x-2">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
-                    style={{ width: `${(application.leave_credits.used / application.leave_credits.total) * 100}%` }}
-                  ></div>
-                </div>
-                <span className="text-xs font-medium min-w-max">
-                  {application.leave_credits.remaining}/{application.leave_credits.total}
-                </span>
-              </div>
-            </td>
-            <td className="border border-gray-200 px-6 py-2">
-              <div className="flex items-center">
-                <button
-                  onClick={() => showApplicationDetails(application)}
-                  className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  View
-                </button>
-              </div>
-            </td>
-          </tr>
-        ))}
+                {loading ? (
+                  <TableSkeleton />
+                ) : (
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {filteredApplications.map((application, index) => (
+                      <tr 
+                        key={application.id} 
+                        className="hover:bg-gray-50 transition-colors duration-100"
+                      >
+                        <td className="px-3 py-2 whitespace-nowrap text-xs">
+                          <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            {index + 1}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="space-y-0.5">
+                            <div className="text-xs font-semibold text-gray-900">{application.name}</div>
+                            <div className="text-2xs text-gray-500"><b>{application.emp_id}</b>-{application.department}</div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium bg-blue-50 text-blue-800">
+                            <Home className="w-2.5 h-2.5 mr-1" />
+                            {application.branch}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
+                          <div className="flex items-center">
+                            <User className="w-3 h-3 mr-1 text-gray-500" />
+                            {application.approver}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium ${getLeaveTypeColor(application.leave_type)}`}>
+                            {application.leave_type}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium ${getStatusColor(application.status)}`}>
+                            {application.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="text-2xs space-y-0.5">
+                            <div className="flex items-center">
+                              <Calendar className="w-2.5 h-2.5 mr-1 text-gray-500" />
+                              <span>
+                                {new Date(application.start_date).toLocaleDateString()} - {new Date(application.end_date).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="w-2.5 h-2.5 mr-1 text-gray-500" />
+                              <span>{application.total_days} {application.total_days > 1 ? 'days' : 'day'}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center space-x-1">
+                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                              <div 
+                                className="bg-blue-600 h-1.5 rounded-full" 
+                                style={{ width: `${(application.leave_credits.used / application.leave_credits.total) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-2xs font-medium min-w-max">
+                              {application.leave_credits.remaining}/{application.leave_credits.total}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <button
+                            onClick={() => showApplicationDetails(application)}
+                            className="inline-flex items-center px-2 py-1 border border-gray-300 shadow-sm text-xs leading-3 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
 
-        {!loading && filteredApplications.length === 0 && (
-          <tr>
-            <td colSpan="9" className="border border-gray-200 px-6 py-12 text-center">
-              <div className="text-center">
-                <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6">
-                  <FileText className="w-12 h-12 text-gray-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">No leave applications found</h3>
-                <p className="text-gray-500">Try adjusting your filters or search criteria</p>
-              </div>
-            </td>
-          </tr>
-        )}
-      </tbody>
-    )}
-  </table>
-</div>
+                    {!loading && filteredApplications.length === 0 && (
+                      <tr>
+                        <td colSpan="9" className="px-6 py-8 text-center">
+                          <div className="text-center">
+                            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+                              <FileText className="w-8 h-8 text-gray-500" />
+                            </div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-2">No leave applications found</h3>
+                            <p className="text-xs text-gray-500">Try adjusting your filters or search criteria</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                )}
+              </table>
+            </div>
 
             {/* Pagination */}
             {filteredApplications.length > 0 && (
-              <div className="px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
-                <div className="text-sm text-gray-500">
+              <div className="px-4 py-3 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
+                <div className="text-xs text-gray-500">
                   Showing <span className="font-medium">1</span> to <span className="font-medium">10</span> of <span className="font-medium">{filteredApplications.length}</span> results
                 </div>
                 <div className="flex space-x-2">
-                  <button className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button className="px-2 py-1 text-xs border border-gray-300 rounded-md font-medium text-gray-700 bg-white hover:bg-gray-50">
                     Previous
                   </button>
-                  <button className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button className="px-2 py-1 text-xs border border-gray-300 rounded-md font-medium text-gray-700 bg-white hover:bg-gray-50">
                     Next
                   </button>
                 </div>
@@ -786,177 +780,160 @@ const LeaveApplications = () => {
       </div>
 
       {/* Application Details Modal */}
-{isModalVisible && selectedApplication && (
-  <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 bg-opacity-50 backdrop-blur-sm">
-    <div className="flex items-start justify-center min-h-screen pt-8 px-4 pb-8">
-      <div className="relative bg-white rounded-xl shadow-2xl transform transition-all w-full max-w-6xl max-h-[90vh] overflow-hidden">
-        {/* Fixed Header */}
-        <div className="sticky top-0 bg-white px-8 py-6 border-b border-gray-200 z-10">
-          <div className="flex items-center justify-between">
+  {isModalVisible && selectedApplication && (
+  <div className="fixed inset-0 z-50 bg-black/70 bg-opacity-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900">Leave Application</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {selectedApplication.name} ({selectedApplication.emp_id}/{selectedApplication.department})
+          </p>
+        </div>
+        <button
+          onClick={handleModalCancel}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      
+      {/* Content */}
+      <div className="overflow-y-auto p-6 space-y-6">
+        {/* Leave Info */}
+        <div className="space-y-4">
+          <h4 className="font-medium text-gray-900">Leave Details</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                Leave Application
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">
-                <b>{selectedApplication.name}</b> ({selectedApplication.emp_id}/{selectedApplication.department}/{selectedApplication.branch})
+              <p className="text-sm text-gray-600">Type</p>
+              <p className="font-medium">{selectedApplication.leave_type}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Status</p>
+              <p className="font-medium">{selectedApplication.status}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Duration</p>
+              <p className="font-medium">
+                {new Date(selectedApplication.start_date).toLocaleDateString()} - {new Date(selectedApplication.end_date).toLocaleDateString()}
+                <span className="block text-sm text-gray-600">{selectedApplication.total_days} days</span>
               </p>
             </div>
-            <button
-              onClick={handleModalCancel}
-              className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div>
+              <p className="text-sm text-gray-600">Applied On</p>
+              <p className="font-medium">{new Date(selectedApplication.applied_on).toLocaleDateString()}</p>
+            </div>
           </div>
         </div>
-        
-        {/* Scrollable Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)] px-8 py-6 space-y-8">
-          {/* Employee and Leave Information Grid */}
-         <div className="bg-gradient-to-br from-gray-50 to-gray-50 p-6 rounded-xl border border-green-100">
-  <div className="flex items-center justify-between mb-6">
-    <div className="flex items-center">
-      <div className="p-2 bg-green-100 rounded-lg mr-4">
-        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      </div>
-      <h4 className="text-lg font-semibold text-gray-800">Leave Information</h4>
-    </div>
-  </div>
-  
-  <div className="grid grid-cols-4 gap-4">
-    <div className="min-w-0">
-      <div className="text-sm font-medium text-gray-600 mb-2">Leave Type</div>
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getLeaveTypeColor(selectedApplication.leave_type)}`}>
-        {selectedApplication.leave_type}
-      </span>
-    </div>
-    
-    <div className="min-w-0">
-      <div className="text-sm font-medium text-gray-600 mb-2">Status</div>
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedApplication.status)}`}>
-        {selectedApplication.status}
-      </span>
-    </div>
-    
-    <div className="min-w-0">
-      <div className="text-sm font-medium text-gray-600 mb-2">Duration</div>
-      <div>
-        <div className="font-semibold text-gray-900">
-          {new Date(selectedApplication.start_date).toLocaleDateString()} - {new Date(selectedApplication.end_date).toLocaleDateString()}
-        </div>
-        <div className="text-sm text-gray-500">{selectedApplication.total_days} days</div>
-      </div>
-    </div>
-    
-    <div className="min-w-0">
-      <div className="text-sm font-medium text-gray-600 mb-2">Applied On</div>
-      <span className="font-semibold text-gray-900">
-        {new Date(selectedApplication.applied_on).toLocaleDateString()}
-      </span>
-    </div>
-  </div>
-</div>
 
-          {/* Leave Credits Section */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-50 p-6 rounded-xl border border-purple-100">
-            <div className="flex items-center mb-6">
-              <div className="p-2 bg-purple-100 rounded-lg mr-4">
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h4 className="text-lg font-semibold text-gray-800">Leave Credits</h4>
+        {/* Employee Info */}
+        <div className="space-y-4">
+          <h4 className="font-medium text-gray-900">Employee Information</h4>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">Department</p>
+              <p className="font-medium">{selectedApplication.department}</p>
             </div>
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex-1">
-                <div className="w-full bg-gray-200 rounded-full h-3">
+            <div>
+              <p className="text-sm text-gray-600">Branch</p>
+              <p className="font-medium">{selectedApplication.branch}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Position</p>
+              <p className="font-medium">{selectedApplication.position}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Approver</p>
+              <p className="font-medium">{selectedApplication.approver}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Leave Credits & Reason */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900">Leave Credits</h4>
+            <div className="space-y-2">
+              <div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Used</span>
+                  <span className="font-medium">{selectedApplication.leave_credits.used} days</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div 
-                    className="bg-gradient-to-r from-gray-500 to-black h-3 rounded-full transition-all duration-300" 
+                    className="bg-gray-800 h-2 rounded-full" 
                     style={{ width: `${(selectedApplication.leave_credits.used / selectedApplication.leave_credits.total) * 100}%` }}
                   ></div>
                 </div>
               </div>
-              <div className="text-right min-w-[100px]">
-                <div className="text-sm font-semibold text-gray-900">
-                  {selectedApplication.leave_credits.remaining} / {selectedApplication.leave_credits.total}
+              <div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Remaining</span>
+                  <span className="font-medium">{selectedApplication.leave_credits.remaining} days</span>
                 </div>
-                <div className="text-xs text-gray-500">remaining</div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <div 
+                    className="bg-gray-600 h-2 rounded-full" 
+                    style={{ width: `${(selectedApplication.leave_credits.remaining / selectedApplication.leave_credits.total) * 100}%` }}
+                  ></div>
+                </div>
               </div>
+              <p className="text-sm text-gray-600">Total: {selectedApplication.leave_credits.total} days</p>
             </div>
           </div>
-
-          {/* Reason Section */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-50 p-6 rounded-xl border border-orange-100">
-            <div className="flex items-center mb-6">
-              <div className="p-2 bg-orange-100 rounded-lg mr-4">
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h4 className="text-lg font-semibold text-gray-800">Reason for Leave</h4>
+          
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900">Reason</h4>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-gray-800">{selectedApplication.reason}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border border-orange-200">
-              <p className="text-gray-700 leading-relaxed">{selectedApplication.reason}</p>
-            </div>
+            <p className="text-sm text-gray-600">
+              Documents provided: {selectedApplication.documents_provided ? 'Yes' : 'No'}
+            </p>
           </div>
-
-          {/* Previous Remarks */}
-          {selectedApplication.remarks && (
-            <div className="bg-gradient-to-br from-gray-50 to-gray-50 p-6 rounded-xl border border-gray-200">
-              <div className="flex items-center mb-6">
-                <div className="p-2 bg-gray-100 rounded-lg mr-4">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                  </svg>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-800">Previous Remarks</h4>
-              </div>
-              <div className="bg-white p-4 rounded-lg border border-gray-200">
-                <p className="text-gray-700 leading-relaxed">{selectedApplication.remarks}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Action Section for Pending Applications */}
-          {selectedApplication.status === 'Pending' && (
-            <div className="bg-transparent p-6 rounded-xl border border-indigo-100">
-              <div className="flex items-center mb-6">
-                <div className="p-2 bg-indigo-100 rounded-lg mr-4">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-800">Add Remarks</h4>
-              </div>
-              <textarea
-                rows={4}
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                placeholder="Enter your remarks here..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
-              ></textarea>
-
-              <div className="flex justify-end space-x-4 mt-6">
-                <button
-                  onClick={() => rejectLeave(selectedApplication.id, remarks)}
-                  className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  <X className="w-4 h-4 mr-2 inline" />
-                  Reject Application
-                </button>
-                <button
-                  onClick={() => approveLeave(selectedApplication.id, remarks)}
-                  className="px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2 inline" />
-                  Approve Application
-                </button>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Remarks */}
+        <div className="space-y-4">
+          <h4 className="font-medium text-gray-900">Remarks</h4>
+          <textarea
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+            placeholder="Add your remarks..."
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+        <button
+          onClick={handleModalCancel}
+          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        
+        {selectedApplication.status === 'Pending' && (
+          <>
+            <button
+              onClick={() => rejectLeave(selectedApplication.id, remarks)}
+              disabled={loading}
+              className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50"
+            >
+              {loading ? 'Processing...' : 'Reject'}
+            </button>
+            <button
+              onClick={() => approveLeave(selectedApplication.id, remarks)}
+              disabled={loading}
+              className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:opacity-50"
+            >
+              {loading ? 'Processing...' : 'Approve'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   </div>
@@ -966,3 +943,4 @@ const LeaveApplications = () => {
 };
 
 export default LeaveApplications;
+                          

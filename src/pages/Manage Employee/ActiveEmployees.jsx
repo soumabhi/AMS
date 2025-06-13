@@ -656,7 +656,7 @@ const ActiveEmployees = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-8 text-left">
       <Toast
         message={toast.message}
         type={toast.type}
@@ -669,7 +669,7 @@ const ActiveEmployees = () => {
         <div className="flex-1">
           <div className="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-2xl shadow-xl p-6">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 text-left">
               <h1 className="text-2xl font-bold text-gray-900">Active Employees</h1>
               <div className="flex items-center space-x-3">
                 <div className="relative">
@@ -805,7 +805,7 @@ const ActiveEmployees = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-2 whitespace-nowrap  text-sm text-gray-900">
                         {employee.department}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
