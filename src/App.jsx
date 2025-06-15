@@ -30,6 +30,8 @@ import Calender from "./pages/Calender";
 import DeputationTable from "./pages/Deputatin&Transfer/Deputation";
 import Transfertable from "./pages/Deputatin&Transfer/Transfer";
 import CandidateDetails from "./pages/Onboarding/CandidateDetails";
+import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgetPassword";
 
 
 function App() {
@@ -61,6 +63,8 @@ function App() {
           <Route path="/DeputationTable" element={<DeputationTable />} />
           <Route path="/Transfertable" element={<Transfertable />} />
           <Route path="/CandidateDetails" element={<CandidateDetails />} />
+          <Route path="/Login" element={<Login />} />
+          <Route path="/ForgotPassword" element={<ForgotPassword />} />
         </Routes>
       </DashboardLayout>
     </Router>
