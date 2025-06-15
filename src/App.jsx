@@ -29,6 +29,7 @@ import LeaveCredit from "./pages/Manage_Leaves/LeaveCredit";
 import Calender from "./pages/Calender";
 import DeputationTable from "./pages/Deputatin&Transfer/Deputation";
 import Transfertable from "./pages/Deputatin&Transfer/Transfer";
+import CandidateDetails from "./pages/Onboarding/CandidateDetails";
 
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
           <Route path="/Calender" element={<Calender />} />
           <Route path="/DeputationTable" element={<DeputationTable />} />
           <Route path="/Transfertable" element={<Transfertable />} />
+          <Route path="/CandidateDetails" element={<CandidateDetails />} />
         </Routes>
       </DashboardLayout>
     </Router>

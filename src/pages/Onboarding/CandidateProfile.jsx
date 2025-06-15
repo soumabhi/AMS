@@ -342,9 +342,10 @@ const CandidateProfile = () => {
     navigate('/AddCandidate');
   };
 
-  const handleViewDetails = (candidate) => {
-    showMessage('info', `Viewing details for ${candidate.name}`);
-  };
+ // Update the handleViewDetails function:
+const handleViewDetails = (candidate) => {
+  navigate('/CandidateDetails', { state: { candidate } });
+};
 
   const clearSearch = () => {
     setSearchTerm('');
