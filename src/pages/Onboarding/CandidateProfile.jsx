@@ -547,132 +547,139 @@ const CandidateProfile = () => {
         </div>
 
         {/* Table */}
-        <div className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-lg">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 border-b border-gray-300">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Position
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Experience
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Location
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Applied
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {getCurrentPageData.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="px-4 py-8 text-left">
-                      <div className="flex flex-col items-left">
-                        <AlertCircle className="w-10 h-10 text-gray-400 mb-3" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates found</h3>
-                        <p className="text-gray-500">
-                          {searchTerm || filters.status || filters.position
-                            ? 'Try adjusting your search or filters'
-                            : 'No candidates have been added yet'}
-                        </p>
-                        {(searchTerm || filters.status || filters.position) && (
-                          <button
-                            onClick={clearSearch}
-                            className="mt-3 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 underline transition-colors"
-                          >
-                            Clear all filters
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  getCurrentPageData.map((candidate) => (
-                    <tr key={candidate.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                      <td className="px-4 py-2 text-left whitespace-nowrap">
-                        <div className="flex items-left">
-                          <div className="flex-shrink-0 h-8 w-8">
-                            <div className={`h-8 w-8 rounded-full ${getAvatarGradient(candidate.name)} flex items-center justify-center shadow-md`}>
-                              <span className="text-xs font-semibold text-white">
-                                {candidate.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="ml-3">
-                            <div className="text-sm font-semibold text-gray-900">{candidate.name}</div>
-                            <div className="text-xs text-gray-500 flex items-left">
-                           
-                              {candidate.email}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 text-left whitespace-nowrap">
-                        <div className="text-sm text-gray-700">{candidate.contactNumber}</div>
-                      </td>
-                      <td className="px-4 py-2 text-left whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{candidate.applyingFor}</div>
-                      </td>
-                      <td className="px-4 py-2 text-left whitespace-nowrap">
-                        <div className="text-sm text-gray-700">{candidate.experience}</div>
-                      </td>
-                      <td className="px-4 py-2 text-left whitespace-nowrap">
-                        <div className="text-sm text-gray-700 flex items-left">
-                        
-                          {candidate.location}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 text-left whitespace-nowrap">
-                        <div className="text-sm text-gray-700 flex items-center">
-                          <Calendar className="w-3 h-3 mr-1 text-gray-400" />
-                          {formatDate(candidate.appliedDate)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 text-left whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${getStatusColor(candidate.status)}`}>
-                          {candidate.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-left text-sm font-medium">
-                        <button
-                          onClick={() => handleViewDetails(candidate)}
-                          className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-gray-700 bg-gradient-to-b from-white to-gray-100 hover:bg-gradient-to-b hover:from-gray-100 hover:to-gray-200 transition-all duration-200 shadow-sm"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+       <div className="border border-gray-300 rounded-lg overflow-hidden bg-white shadow-lg">
+  <div className="overflow-x-auto">
+    <table className="w-full">
+      <thead className="bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 border-b border-gray-300">
+        <tr>
+          {/* Added Sl No column */}
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Sl No
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Name
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Contact
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Position
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Experience
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Location
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Applied
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Status
+          </th>
+          <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-100">
+        {getCurrentPageData.length === 0 ? (
+          <tr>
+            {/* Updated colSpan to 9 for the new column */}
+            <td colSpan="9" className="px-4 py-8 text-left">
+              <div className="flex flex-col items-left">
+                <AlertCircle className="w-10 h-10 text-gray-400 mb-3" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates found</h3>
+                <p className="text-gray-500">
+                  {searchTerm || filters.status || filters.position
+                    ? 'Try adjusting your search or filters'
+                    : 'No candidates have been added yet'}
+                </p>
+                {(searchTerm || filters.status || filters.position) && (
+                  <button
+                    onClick={clearSearch}
+                    className="mt-3 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 underline transition-colors"
+                  >
+                    Clear all filters
+                  </button>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </td>
+          </tr>
+        ) : (
+          getCurrentPageData.map((candidate, index) => (
+            <tr key={candidate.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
+              {/* Serial Number Cell */}
+              <td className="px-4 py-2 text-left whitespace-nowrap text-sm text-gray-700">
+                {(currentPage - 1) * itemsPerPage + index + 1}
+              </td>
+              <td className="px-4 py-2 text-left whitespace-nowrap">
+                <div className="flex items-left">
+                  <div className="flex-shrink-0 h-8 w-8">
+                    <div className={`h-8 w-8 rounded-full ${getAvatarGradient(candidate.name)} flex items-center justify-center shadow-md`}>
+                      <span className="text-xs font-semibold text-white">
+                        {candidate.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-sm font-semibold text-gray-900">{candidate.name}</div>
+                    <div className="text-xs text-gray-500 flex items-left">
+                      {candidate.email}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-2 text-left whitespace-nowrap">
+                <div className="text-sm text-gray-700">{candidate.contactNumber}</div>
+              </td>
+              <td className="px-4 py-2 text-left whitespace-nowrap">
+                <div className="text-sm font-medium text-gray-900">{candidate.applyingFor}</div>
+              </td>
+              <td className="px-4 py-2 text-left whitespace-nowrap">
+                <div className="text-sm text-gray-700">{candidate.experience}</div>
+              </td>
+              <td className="px-4 py-2 text-left whitespace-nowrap">
+                <div className="text-sm text-gray-700 flex items-left">
+                  {candidate.location}
+                </div>
+              </td>
+              <td className="px-4 py-2 text-left whitespace-nowrap">
+                <div className="text-sm text-gray-700 flex items-center">
+                  <Calendar className="w-3 h-3 mr-1 text-gray-400" />
+                  {formatDate(candidate.appliedDate)}
+                </div>
+              </td>
+              <td className="px-4 py-2 text-left whitespace-nowrap">
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full shadow-sm ${getStatusColor(candidate.status)}`}>
+                  {candidate.status}
+                </span>
+              </td>
+              <td className="px-4 py-2 whitespace-nowrap text-left text-sm font-medium">
+                <button
+                  onClick={() => handleViewDetails(candidate)}
+                  className="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-gray-700 bg-gradient-to-b from-white to-gray-100 hover:bg-gradient-to-b hover:from-gray-100 hover:to-gray-200 transition-all duration-200 shadow-sm"
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  View
+                </button>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalItems={filteredCandidates.length}
-            itemsPerPage={itemsPerPage}
-            onPageChange={handlePageChange}
-            onItemsPerPageChange={handleItemsPerPageChange}
-          />
-        </div>
+  {/* Pagination */}
+  <Pagination
+    currentPage={currentPage}
+    totalItems={filteredCandidates.length}
+    itemsPerPage={itemsPerPage}
+    onPageChange={handlePageChange}
+    onItemsPerPageChange={handleItemsPerPageChange}
+  />
+</div>
       </div>
     </div>
   );

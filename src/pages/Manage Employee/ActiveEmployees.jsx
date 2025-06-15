@@ -338,81 +338,68 @@ const ActiveEmployees = () => {
   };
 
   // Export to Excel with all fields
-  const exportToExcel = () => {
-    try {
-      // Prepare data for export
-      const exportData = employees.map(emp => ({
-        'Employee ID': emp.emp_id,
-        'Name': emp.name,
-        'First Name': emp.firstName,
-        'Middle Name': emp.middleName,
-        'Last Name': emp.lastName,
-        'Salutation': emp.salutation,
-        'Email': emp.email,
-        'Phone': emp.phone,
-        'Date of Birth': emp.dob,
-        'Age': emp.age,
-        'Gender': emp.gender,
-        'Department': emp.department,
-        'Branch': emp.branch,
-        'Position': emp.position,
-        'Status': emp.status,
-        'Emergency Contact': emp.emergencyContact,
-        'Address': emp.address,
-        'PAN Number': emp.panNumber,
-        'Aadhar Number': emp.aadharNumber,
-        'Joining Date': emp.joiningDate,
-        'Shift': emp.shift,
-        'Shift Timing': emp.shiftTiming
-      }));
+const exportToExcel = () => {
+  try {
+    // Prepare data for export
+    const exportData = employees.map(emp => ({
+      'Employee ID': emp.emp_id,
+      'Fname': emp.firstName,
+      'Mname': emp.middleName,
+      'Lname': emp.lastName,
+      'Gender': emp.gender,
+      'Current Entity': emp.currentEntity,
+      'Designation': emp.position,
+      'Blood Grp': emp.bloodGroup,
+      'Qualification': emp.qualification,
+      'Passing Year': emp.passingYear,
+      'Branch': emp.branch,
+      'Dept': emp.department,
+      'DOJ': emp.joiningDate,
+      'DOB': emp.dob,
+      'Contact Number': emp.phone,
+      'Mail Id': emp.email,
+      'Salary': emp.salary,
+      'Address 1': emp.address1,
+      'Address 2': emp.address2,
+      'Block': emp.block,
+      'Dist': emp.district,
+      'Zip Code': emp.zipCode,
+      'Adhaar Number': emp.aadharNumber,
+      'PAN Number': emp.panNumber,
+      'Emergency Contact': emp.emergencyContact,
+      'Emergency Contact- Name': emp.emergencyContactName,
+      'Emergency Contact-Relationship': emp.emergencyContactRelation,
+      'BANK Account Holder Name': emp.accountHolderName,
+      'Bank Name': emp.bankName,
+      'A/C No.': emp.accountNumber,
+      'IFSC code': emp.ifscCode,
+      'Branch (Bank)': emp.bankBranch,
+      'Mode of Payment': emp.paymentMode
+    }));
 
-      // Create worksheet
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
 
-      // Set column widths
-      const columnWidths = [
-        { wch: 15 }, // Employee ID
-        { wch: 25 }, // Name
-        { wch: 15 }, // First Name
-        { wch: 15 }, // Middle Name
-        { wch: 15 }, // Last Name
-        { wch: 10 }, // Salutation
-        { wch: 25 }, // Email
-        { wch: 15 }, // Phone
-        { wch: 15 }, // Date of Birth
-        { wch: 8 },  // Age
-        { wch: 10 }, // Gender
-        { wch: 20 }, // Department
-        { wch: 20 }, // Branch
-        { wch: 20 }, // Position
-        { wch: 10 }, // Status
-        { wch: 15 }, // Emergency Contact
-        { wch: 40 }, // Address
-        { wch: 15 }, // PAN Number
-        { wch: 15 }, // Aadhar Number
-        { wch: 15 }, // Joining Date
-        { wch: 15 }, // Shift
-        { wch: 15 }  // Shift Timing
-      ];
-      worksheet['!cols'] = columnWidths;
+    // Optional: Set dynamic or fixed column widths
+    worksheet['!cols'] = new Array(Object.keys(exportData[0]).length).fill({ wch: 20 });
 
-      // Create workbook
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Active Employees");
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Active Employees");
 
-      // Generate filename with current date
-      const date = new Date();
-      const formattedDate = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
-      const filename = `Active_Employees_${formattedDate}.xlsx`;
+    // Generate filename with current date
+    const date = new Date();
+    const formattedDate = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
+    const filename = `Active_Employees_${formattedDate}.xlsx`;
 
-      // Save file
-      XLSX.writeFile(workbook, filename);
-      showToast("Employee data exported successfully");
-    } catch (error) {
-      console.error("Error exporting to Excel:", error);
-      showToast("Failed to export employee data", "error");
-    }
-  };
+    // Save file
+    XLSX.writeFile(workbook, filename);
+    showToast("Employee data exported successfully");
+  } catch (error) {
+    console.error("Error exporting to Excel:", error);
+    showToast("Failed to export employee data", "error");
+  }
+};
 
   // Handle modal cancel
   const handleModalCancel = () => {
