@@ -515,28 +515,49 @@ const ActiveEmployees = () => {
   };
 
   const downloadTemplate = () => {
-    const template = [
-      {
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "1234567890",
-        dateOfBirth: "1990-01-01",
-        gender: "Male",
-        department: "IT",
-        branch: "Main Branch",
-        position: "Software Engineer",
-        emergencyContact: "9876543210",
-        address: "123 Main St",
-        panNumber: "ABCDE1234F",
-        aadharNumber: "123456789012"
-      }
-    ];
+  const template = [
+    {
+      bmCode: "BM001",
+      fname: "Amit",
+      mname: "Kumar",
+      lname: "Sharma",
+      gender: "Male",
+      currentEntity: "Main Office",
+      designation: "Manager",
+      bloodGrp: "O+",
+      qualification: "MBA",
+      passingYear: "2015",
+      branch: "Main",
+      dept: "HR",
+      doj: "2016-07-01",
+      dob: "1990-05-15",
+      contactNumber: "9876543210",
+      mailId: "amit.sharma@example.com",
+      salary: "50000",
+      address1: "123 Park St",
+      address2: "Apt 4B",
+      block: "Block A",
+      dist: "Kolkata",
+      zipCode: "700001",
+      adhaarNumber: "123456789012",
+      panNumber: "ABCDE1234F",
+      emergencyContact: "9123456789",
+      emergencyContactName: "Sunita Sharma",
+      emergencyContactRelationship: "Mother",
+      bankAccountHolderName: "Amit Kumar Sharma",
+      bankName: "State Bank of India",
+      accountNo: "12345678901",
+      ifscCode: "SBIN0001234",
+      bankBranch: "Kolkata Main",
+      modeOfPayment: "Bank Transfer"
+    }
+  ];
 
-    const ws = XLSX.utils.json_to_sheet(template);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template");
-    XLSX.writeFile(wb, "employee_upload_template.xlsx");
-  };
+  const ws = XLSX.utils.json_to_sheet(template);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Template");
+  XLSX.writeFile(wb, "employee_upload_template.xlsx");
+};
 
   const handleBulkUpload = async (e) => {
     const file = e.target.files[0];
