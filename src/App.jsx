@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Layout
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -32,42 +32,69 @@ import Transfertable from "./pages/Deputatin&Transfer/Transfer";
 import CandidateDetails from "./pages/Onboarding/CandidateDetails";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgetPassword";
+import EmployeeDetailssection from "./pages/Onboarding/EmployeeDetailSection";
 
+const isAuthenticated = () => {
+  // Implement your authentication check logic here
+  // For example, check if there's a token in localStorage
+  return localStorage.getItem('authToken') !== null;
+};
+
+const ProtectedRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
 
 function App() {
   return (
     <Router>
-     
-      <DashboardLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/ManageShift" element={<ManageShift />} />
-          <Route path="/ManageRole" element={<ManageRole />} />
-          <Route path="/LeaveType" element={<LeaveType />} />
-          <Route path="/AttendanceStatus" element={<AttendanceStatus />} />
-          <Route path="/Department" element={<DepartmentManagement />} />
-          <Route path="/Designation" element={<DesignationManagement />} />
-          <Route path="/Branch" element={<BranchManagement />} />
-          <Route path="/CandidateProfile" element={<CandidateProfile />} />
-          <Route path="/EmployeeDetails" element={<EmployeeDetails />} />
-          <Route path="/AddCandidate" element={<AddCandidate />} />
-          <Route path="/PayrollDetails" element={<PayrollDetails />} />
-          <Route path="/ActiveEmployees" element={<ActiveEmployees />} />
-          <Route path="/DisabledEmployee" element={<DisabledEmployee />} />
-          <Route path="/ViewAttendance" element={<ViewAttendance />} />
-          <Route path="/ApprooveAttendance" element={<ApprooveAttendance />} />
-          <Route path="/ViewLeaveRequest" element={<ViewLeaveRequest />} />
-          <Route path="/ApplyLeave" element={<ApplyLeave />} />
-          <Route path="/ViewLeaveApplications" element={<ViewLeaveApplications />} />
-          <Route path="/LeaveCredit" element={<LeaveCredit />} />
-          <Route path="/Calender" element={<Calender />} />
-          <Route path="/DeputationTable" element={<DeputationTable />} />
-          <Route path="/Transfertable" element={<Transfertable />} />
-          <Route path="/CandidateDetails" element={<CandidateDetails />} />
-          <Route path="/Login" element={<Login />} />
-          <Route path="/ForgotPassword" element={<ForgotPassword />} />
-        </Routes>
-      </DashboardLayout>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Login />} />
+        <Route path="/ForgotPassword" element={<ForgotPassword />} />
+        
+        {/* Protected routes */}
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Routes>
+                  <Route path="/Dashboard" element={<Dashboard />} />
+                  <Route path="/ManageShift" element={<ManageShift />} />
+                  <Route path="/ManageRole" element={<ManageRole />} />
+                  <Route path="/LeaveType" element={<LeaveType />} />
+                  <Route path="/AttendanceStatus" element={<AttendanceStatus />} />
+                  <Route path="/Department" element={<DepartmentManagement />} />
+                  <Route path="/Designation" element={<DesignationManagement />} />
+                  <Route path="/Branch" element={<BranchManagement />} />
+                  <Route path="/CandidateProfile" element={<CandidateProfile />} />
+                  <Route path="/EmployeeDetails" element={<EmployeeDetails />} />
+                  <Route path="/AddCandidate" element={<AddCandidate />} />
+                  <Route path="/PayrollDetails" element={<PayrollDetails />} />
+                  <Route path="/ActiveEmployees" element={<ActiveEmployees />} />
+                  <Route path="/DisabledEmployee" element={<DisabledEmployee />} />
+                  <Route path="/ViewAttendance" element={<ViewAttendance />} />
+                  <Route path="/ApprooveAttendance" element={<ApprooveAttendance />} />
+                  <Route path="/ViewLeaveRequest" element={<ViewLeaveRequest />} />
+                  <Route path="/ApplyLeave" element={<ApplyLeave />} />
+                  <Route path="/ViewLeaveApplications" element={<ViewLeaveApplications />} />
+                  <Route path="/LeaveCredit" element={<LeaveCredit />} />
+                  <Route path="/Calender" element={<Calender />} />
+                  <Route path="/DeputationTable" element={<DeputationTable />} />
+                  <Route path="/Transfertable" element={<Transfertable />} />
+                  <Route path="/CandidateDetails" element={<CandidateDetails />} />
+                  <Route path="/EmployeeDetailssection" element={<EmployeeDetailssection />} />
+                  {/* Add a catch-all route for protected paths */}
+                  {/* <Route path="*" element={<Navigate to="/Dashboard" replace />} /> */}
+                </Routes>
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </Router>
   );
 }

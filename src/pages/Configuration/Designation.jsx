@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, AlertCircle, Edit, X, Users, Briefcase, ChevronDown, Filter } from 'lucide-react';
 
-// Toast Component (since it's imported but not defined)
+// Toast Component
 const Toast = ({ message, type, isVisible, onClose }) => {
   useEffect(() => {
     if (isVisible) {
@@ -45,6 +45,9 @@ const TableSkeleton = () => {
                         <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-16"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-32"></div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                         <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-16"></div>
                     </td>
                 </tr>
@@ -80,7 +83,36 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
     );
 };
 
-// Mock API service for demonstration (replace with your actual API)
+const Select = ({ label, value, onChange, options, error, className = "", name }) => {
+    return (
+        <div className="space-y-2">
+            {label && (
+                <label className="block text-sm font-semibold text-gray-700">
+                    {label}
+                </label>
+            )}
+            <select
+                name={name}
+                value={value}
+                onChange={onChange}
+                className={`w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200 ${error ? 'border-red-400 bg-red-50/50' : 'hover:border-gray-300'} ${className}`}
+            >
+                <option value="">Select an option</option>
+                {options.map((option, index) => (
+                    <option key={index} value={option}>{option}</option>
+                ))}
+            </select>
+            {error && (
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                    <X className="w-4 h-4" />
+                    {error}
+                </p>
+            )}
+        </div>
+    );
+};
+
+// Mock API service
 const apiService = {
     baseURL: 'http://localhost:5000/api/designation',
 
@@ -100,9 +132,36 @@ const apiService = {
                 return {
                     success: true,
                     data: [
-                        { _id: '1', designationName: 'Software Engineer', departmentName: 'IT' },
-                        { _id: '2', designationName: 'Manager', departmentName: 'HR' },
-                        { _id: '3', designationName: 'Analyst', departmentName: 'Finance' }
+                        { 
+                            _id: '1', 
+                            designationName: 'Software Engineer', 
+                            departmentName: 'IT',
+                            jobBand: {
+                                level: 'Senior',
+                                grade: 'III',
+                                tier: 'B'
+                            }
+                        },
+                        { 
+                            _id: '2', 
+                            designationName: 'Manager', 
+                            departmentName: 'HR',
+                            jobBand: {
+                                level: 'Executive',
+                                grade: 'V',
+                                tier: 'C'
+                            }
+                        },
+                        { 
+                            _id: '3', 
+                            designationName: 'Analyst', 
+                            departmentName: 'Finance',
+                            jobBand: {
+                                level: 'Intermediate',
+                                grade: 'II',
+                                tier: 'A'
+                            }
+                        }
                     ]
                 };
             }
@@ -149,11 +208,23 @@ const DesignationManagement = () => {
     const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
     const [formData, setFormData] = useState({
         designationName: "",
-        departmentName: ""
+        departmentName: "",
+        jobBand: {
+            level: "",
+            grade: "",
+            tier: ""
+        }
     });
     const [validationErrors, setValidationErrors] = useState({});
     const [departmentFilter, setDepartmentFilter] = useState('all');
     const [uniqueDepartments, setUniqueDepartments] = useState([]);
+    
+    // Job band options
+    const jobBandOptions = {
+        levels: ['Entry', 'Intermediate', 'Senior', 'Executive', 'Leadership'],
+        grades: ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'],
+        tiers: ['A', 'B', 'C', 'D', 'E']
+    };
 
     useEffect(() => {
         fetchDesignations();
@@ -180,7 +251,6 @@ const DesignationManagement = () => {
             const response = await apiService.getAllDesignations();
             let designationsList = [];
 
-            // Fixed: Added proper null/undefined checks
             if (response && response.data) {
                 if (Array.isArray(response.data)) {
                     designationsList = response.data;
@@ -228,7 +298,12 @@ const DesignationManagement = () => {
     const resetForm = () => {
         setFormData({
             designationName: "",
-            departmentName: ""
+            departmentName: "",
+            jobBand: {
+                level: "",
+                grade: "",
+                tier: ""
+            }
         });
         setValidationErrors({});
         setEditingDesignation(null);
@@ -236,10 +311,24 @@ const DesignationManagement = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        
+        // Check if this is a jobBand field
+        if (name.startsWith('jobBand.')) {
+            const jobBandField = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                jobBand: {
+                    ...prev.jobBand,
+                    [jobBandField]: value
+                }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+
         if (validationErrors[name]) {
             setValidationErrors(prev => ({
                 ...prev,
@@ -259,6 +348,18 @@ const DesignationManagement = () => {
             errors.departmentName = 'Department name is required';
         }
 
+        if (!formData.jobBand.level) {
+            errors['jobBand.level'] = 'Job level is required';
+        }
+
+        if (!formData.jobBand.grade) {
+            errors['jobBand.grade'] = 'Job grade is required';
+        }
+
+        if (!formData.jobBand.tier) {
+            errors['jobBand.tier'] = 'Job tier is required';
+        }
+
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -274,7 +375,12 @@ const DesignationManagement = () => {
         try {
             const finalFormData = {
                 designationName: formData.designationName.trim(),
-                departmentName: formData.departmentName.trim()
+                departmentName: formData.departmentName.trim(),
+                jobBand: {
+                    level: formData.jobBand.level,
+                    grade: formData.jobBand.grade,
+                    tier: formData.jobBand.tier
+                }
             };
 
             if (editingDesignation) {
@@ -302,7 +408,12 @@ const DesignationManagement = () => {
         setEditingDesignation(designation);
         setFormData({ 
             designationName: designation.designationName || "",
-            departmentName: designation.departmentName || ""
+            departmentName: designation.departmentName || "",
+            jobBand: designation.jobBand || {
+                level: "",
+                grade: "",
+                tier: ""
+            }
         });
     };
 
@@ -383,6 +494,9 @@ const DesignationManagement = () => {
                                             Department Name
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                            Job Band
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
@@ -410,6 +524,11 @@ const DesignationManagement = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="text-sm font-medium text-gray-900">
+                                                        {designation.jobBand?.level} {designation.jobBand?.grade} ({designation.jobBand?.tier})
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
                                                     <button
                                                         onClick={() => handleEdit(designation)}
                                                         className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg hover:from-gray-200 hover:to-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -423,7 +542,7 @@ const DesignationManagement = () => {
 
                                         {!loading && designations.length === 0 && (
                                             <tr>
-                                                <td colSpan="4" className="px-6 py-16 text-center">
+                                                <td colSpan="5" className="px-6 py-16 text-center">
                                                     <div className="text-center">
                                                         <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
                                                             <Briefcase className="w-12 h-12 text-gray-500" />
@@ -490,6 +609,38 @@ const DesignationManagement = () => {
                                 className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200"
                             />
 
+                            {/* Job Band Section */}
+                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Job Band Details *</h3>
+                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
+                               
+                                <div className="grid grid-cols-3 gap-4">
+                                    <Select
+                                        label="Level"
+                                        name="jobBand.level"
+                                        value={formData.jobBand.level}
+                                        onChange={handleInputChange}
+                                        options={jobBandOptions.levels}
+                                        error={validationErrors['jobBand.level']}
+                                    />
+                                    <Select
+                                        label="Grade"
+                                        name="jobBand.grade"
+                                        value={formData.jobBand.grade}
+                                        onChange={handleInputChange}
+                                        options={jobBandOptions.grades}
+                                        error={validationErrors['jobBand.grade']}
+                                    />
+                                    <Select
+                                        label="Tier"
+                                        name="jobBand.tier"
+                                        value={formData.jobBand.tier}
+                                        onChange={handleInputChange}
+                                        options={jobBandOptions.tiers}
+                                        error={validationErrors['jobBand.tier']}
+                                    />
+                                </div>
+                            </div>
+
                             <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
                                 <div className="flex items-start">
                                     <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center mr-3 mt-0.5">
@@ -508,7 +659,7 @@ const DesignationManagement = () => {
                                             </li>
                                             <li className="flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-                                                <span>Ensure department name is correct</span>
+                                                <span>Job band helps classify positions</span>
                                             </li>
                                         </ul>
                                     </div>

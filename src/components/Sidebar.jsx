@@ -33,7 +33,7 @@ const menuItems = [
     id: "dashboard",
     label: "Dashboard",
     icon: BarChart3,
-    path: "/",
+    path: "/Dashboard",
     type: "single"
   },
   {

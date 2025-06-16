@@ -24,19 +24,24 @@ const Topbar = () => {
 
   const confirmLogout = () => {
     // Here you would typically also clear any user session/tokens
-    navigate('/login'); // Redirect to login page
+    navigate('/'); // Redirect to login page
   };
 
   const cancelLogout = () => {
     setShowLogoutModal(false);
   };
 
+  // FIX: Proper useEffect with empty dependency array
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    
+    // Cleanup function
+    return () => {
+      clearInterval(timer);
+    };
+  }, []); // Empty dependency array - effect runs only once on mount
 
   // Format time (HH:MM:SS AM/PM)
   const formattedTime = currentTime.toLocaleTimeString('en-US', {

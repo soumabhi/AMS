@@ -2,7 +2,299 @@ import React, { useState, useEffect } from 'react';
 import {Search, FileText, ChevronRight, Home, X, ChevronLeft, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Updated Toast Component with gradient styling
+// Mock employee data (would normally come from API)
+const mockEmployees = [
+  {
+    id: 1,
+    employeeId: 'EMP001',
+    name: 'John Smith',
+    dateOfJoining: '2023-01-15',
+    branch: 'New York',
+    designation: 'Software Engineer',
+    designationId: 'SE001',
+    role: 'Developer',
+    shiftId: 'SHIFT001',
+    jobBand: 'B2',
+    salary: '$75,000',
+    userPassword: '********',
+    userId: 'john.smith',
+    faceEmbedding: 'embedded_data_string',
+    updatedCv: '/static/cv/john_smith.pdf',
+    entityName: 'Principal',
+    kra: 'Develop web applications, Code reviews, Mentoring junior developers',
+    email: 'john.smith@company.com',
+    phone: '+1-234-567-8901',
+    address: '123 Main St, NY 10001',
+    reportingManager: 'Jane Doe',
+    status: 'Verified'
+  },
+  {
+    id: 2,
+    employeeId: 'EMP002',
+    name: 'Sarah Johnson',
+    dateOfJoining: '2022-08-20',
+    branch: 'California',
+    designation: 'Product Manager',
+    designationId: 'PM001',
+    role: 'Manager',
+    shiftId: 'SHIFT002',
+    jobBand: 'B3',
+    salary: '$95,000',
+    userPassword: '********',
+    userId: 'sarah.johnson',
+    faceEmbedding: 'embedded_data_string',
+    updatedCv: '/static/cv/sarah_johnson.pdf',
+    entityName: 'Principal',
+    kra: 'Product roadmap planning, Stakeholder management, Market analysis',
+    email: 'sarah.johnson@company.com',
+    phone: '+1-234-567-8902',
+    address: '456 Oak Ave, CA 90210',
+    reportingManager: 'Mike Wilson',
+    status: 'Pending'
+  },
+  {
+  id: 3,
+  employeeId: 'EMP003',
+  name: 'David Lee',
+  dateOfJoining: '2021-11-10',
+  branch: 'Texas',
+  designation: 'UI/UX Designer',
+  designationId: 'UX001',
+  role: 'Designer',
+  shiftId: 'SHIFT003',
+  jobBand: 'B1',
+  salary: '$68,000',
+  userPassword: '********',
+  userId: 'david.lee',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/david_lee.pdf',
+  entityName: 'Principal',
+  kra: 'UI design, Prototyping, User testing',
+  email: 'david.lee@company.com',
+  phone: '+1-234-567-8903',
+  address: '789 Pine Rd, TX 73301',
+  reportingManager: 'John Smith',
+  status: 'Verified'
+},
+{
+  id: 4,
+  employeeId: 'EMP004',
+  name: 'Emily Davis',
+  dateOfJoining: '2020-07-01',
+  branch: 'Florida',
+  designation: 'QA Engineer',
+  designationId: 'QA001',
+  role: 'Tester',
+  shiftId: 'SHIFT001',
+  jobBand: 'B1',
+  salary: '$62,000',
+  userPassword: '********',
+  userId: 'emily.davis',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/emily_davis.pdf',
+  entityName: 'Principal',
+  kra: 'Manual testing, Test case preparation, Defect tracking',
+  email: 'emily.davis@company.com',
+  phone: '+1-234-567-8904',
+  address: '234 Willow Ln, FL 33101',
+  reportingManager: 'Sarah Johnson',
+  status: 'Verified'
+},
+{
+  id: 5,
+  employeeId: 'EMP005',
+  name: 'Michael Brown',
+  dateOfJoining: '2023-05-15',
+  branch: 'Illinois',
+  designation: 'Backend Developer',
+  designationId: 'BD001',
+  role: 'Developer',
+  shiftId: 'SHIFT002',
+  jobBand: 'B2',
+  salary: '$80,000',
+  userPassword: '********',
+  userId: 'michael.brown',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/michael_brown.pdf',
+  entityName: 'Principal',
+  kra: 'API development, Database optimization, Integration',
+  email: 'michael.brown@company.com',
+  phone: '+1-234-567-8905',
+  address: '321 Maple Dr, IL 60007',
+  reportingManager: 'Jane Doe',
+  status: 'Pending'
+},
+{
+  id: 6,
+  employeeId: 'EMP006',
+  name: 'Laura Wilson',
+  dateOfJoining: '2022-02-28',
+  branch: 'Georgia',
+  designation: 'HR Manager',
+  designationId: 'HR001',
+  role: 'HR',
+  shiftId: 'SHIFT001',
+  jobBand: 'B3',
+  salary: '$88,000',
+  userPassword: '********',
+  userId: 'laura.wilson',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/laura_wilson.pdf',
+  entityName: 'Principal',
+  kra: 'Recruitment, Employee engagement, Payroll management',
+  email: 'laura.wilson@company.com',
+  phone: '+1-234-567-8906',
+  address: '987 River Rd, GA 30303',
+  reportingManager: 'Mike Wilson',
+  status: 'Verified'
+},
+{
+  id: 7,
+  employeeId: 'EMP007',
+  name: 'Chris Evans',
+  dateOfJoining: '2021-09-12',
+  branch: 'Washington',
+  designation: 'DevOps Engineer',
+  designationId: 'DO001',
+  role: 'Engineer',
+  shiftId: 'SHIFT003',
+  jobBand: 'B2',
+  salary: '$92,000',
+  userPassword: '********',
+  userId: 'chris.evans',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/chris_evans.pdf',
+  entityName: 'Principal',
+  kra: 'CI/CD, Cloud management, Infrastructure automation',
+  email: 'chris.evans@company.com',
+  phone: '+1-234-567-8907',
+  address: '654 Cedar St, WA 98001',
+  reportingManager: 'Sarah Johnson',
+  status: 'Verified'
+},
+{
+  id: 8,
+  employeeId: 'EMP008',
+  name: 'Anna Thomas',
+  dateOfJoining: '2023-03-05',
+  branch: 'Nevada',
+  designation: 'Business Analyst',
+  designationId: 'BA001',
+  role: 'Analyst',
+  shiftId: 'SHIFT002',
+  jobBand: 'B2',
+  salary: '$77,000',
+  userPassword: '********',
+  userId: 'anna.thomas',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/anna_thomas.pdf',
+  entityName: 'Principal',
+  kra: 'Requirement gathering, Data analysis, Documentation',
+  email: 'anna.thomas@company.com',
+  phone: '+1-234-567-8908',
+  address: '159 Sunset Blvd, NV 89101',
+  reportingManager: 'Jane Doe',
+  status: 'Pending'
+},
+{
+  id: 9,
+  employeeId: 'EMP009',
+  name: 'James White',
+  dateOfJoining: '2019-12-10',
+  branch: 'Colorado',
+  designation: 'Tech Lead',
+  designationId: 'TL001',
+  role: 'Lead',
+  shiftId: 'SHIFT001',
+  jobBand: 'B4',
+  salary: '$110,000',
+  userPassword: '********',
+  userId: 'james.white',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/james_white.pdf',
+  entityName: 'Principal',
+  kra: 'Project leadership, Architecture design, Client interaction',
+  email: 'james.white@company.com',
+  phone: '+1-234-567-8909',
+  address: '753 Skyline Dr, CO 80202',
+  reportingManager: 'Mike Wilson',
+  status: 'Verified'
+},
+{
+  id: 10,
+  employeeId: 'EMP010',
+  name: 'Olivia Martin',
+  dateOfJoining: '2020-10-25',
+  branch: 'Arizona',
+  designation: 'Data Scientist',
+  designationId: 'DS001',
+  role: 'Scientist',
+  shiftId: 'SHIFT003',
+  jobBand: 'B3',
+  salary: '$98,000',
+  userPassword: '********',
+  userId: 'olivia.martin',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/olivia_martin.pdf',
+  entityName: 'Principal',
+  kra: 'Machine learning models, Data preprocessing, Insights generation',
+  email: 'olivia.martin@company.com',
+  phone: '+1-234-567-8910',
+  address: '842 Canyon Rd, AZ 85001',
+  reportingManager: 'John Smith',
+  status: 'Verified'
+},
+{
+  id: 11,
+  employeeId: 'EMP011',
+  name: 'Daniel Clark',
+  dateOfJoining: '2023-06-18',
+  branch: 'Oregon',
+  designation: 'Mobile App Developer',
+  designationId: 'MD001',
+  role: 'Developer',
+  shiftId: 'SHIFT001',
+  jobBand: 'B2',
+  salary: '$79,000',
+  userPassword: '********',
+  userId: 'daniel.clark',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/daniel_clark.pdf',
+  entityName: 'Principal',
+  kra: 'App development, Performance tuning, Bug fixing',
+  email: 'daniel.clark@company.com',
+  phone: '+1-234-567-8911',
+  address: '205 Greenhill St, OR 97201',
+  reportingManager: 'Jane Doe',
+  status: 'Pending'
+},
+{
+  id: 12,
+  employeeId: 'EMP012',
+  name: 'Sophia Hall',
+  dateOfJoining: '2021-04-09',
+  branch: 'Michigan',
+  designation: 'Cloud Architect',
+  designationId: 'CA001',
+  role: 'Architect',
+  shiftId: 'SHIFT002',
+  jobBand: 'B4',
+  salary: '$115,000',
+  userPassword: '********',
+  userId: 'sophia.hall',
+  faceEmbedding: 'embedded_data_string',
+  updatedCv: '/static/cv/sophia_hall.pdf',
+  entityName: 'Principal',
+  kra: 'Cloud architecture, Security compliance, Cost optimization',
+  email: 'sophia.hall@company.com',
+  phone: '+1-234-567-8912',
+  address: '314 Harbor Ln, MI 48104',
+  reportingManager: 'Mike Wilson',
+  status: 'Verified'
+}
+
+];
+
 const Toast = ({ message, type, isVisible, onClose }) => {
   if (!isVisible) return null;
 
@@ -35,7 +327,6 @@ const Toast = ({ message, type, isVisible, onClose }) => {
   );
 };
 
-// Updated Table Skeleton Component with gradient styling
 const TableSkeleton = ({ columns, rows, headerWidths, cellWidths }) => {
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
@@ -68,179 +359,8 @@ const TableSkeleton = ({ columns, rows, headerWidths, cellWidths }) => {
 };
 
 const EmployeeManagement = () => {
-  // Dummy employee data
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      employeeId: 'EMP001',
-      name: 'John Smith',
-      dateOfJoining: '2023-01-15',
-      branch: 'New York',
-      designation: 'Software Engineer',
-      designationId: 'SE001',
-      role: 'Developer',
-      shiftId: 'SHIFT001',
-      jobBand: 'B2',
-      salary: '$75,000',
-      userPassword: '********',
-      userId: 'john.smith',
-      faceEmbedding: 'embedded_data_string',
-      updatedCv: '/static/cv/john_smith.pdf',
-      entityName: 'Principal',
-      kra: 'Develop web applications, Code reviews, Mentoring junior developers',
-      email: 'john.smith@company.com',
-      phone: '+1-234-567-8901',
-      address: '123 Main St, NY 10001',
-      reportingManager: 'Jane Doe',
-      status: 'Verified'
-    },
-    {
-      id: 2,
-      employeeId: 'EMP002',
-      name: 'Sarah Johnson',
-      dateOfJoining: '2022-08-20',
-      branch: 'California',
-      designation: 'Product Manager',
-      designationId: 'PM001',
-      role: 'Manager',
-      shiftId: 'SHIFT002',
-      jobBand: 'B3',
-      salary: '$95,000',
-      userPassword: '********',
-      userId: 'sarah.johnson',
-      faceEmbedding: 'embedded_data_string',
-      updatedCv: '/static/cv/sarah_johnson.pdf',
-      entityName: 'Principal',
-      kra: 'Product roadmap planning, Stakeholder management, Market analysis',
-      email: 'sarah.johnson@company.com',
-      phone: '+1-234-567-8902',
-      address: '456 Oak Ave, CA 90210',
-      reportingManager: 'Mike Wilson',
-      status: 'Pending'
-    },
-    {
-      id: 3,
-      employeeId: 'EMP003',
-      name: 'Michael Brown',
-      dateOfJoining: '2023-03-10',
-      branch: 'Texas',
-      designation: 'Data Analyst',
-      designationId: 'DA001',
-      role: 'Analyst',
-      shiftId: 'SHIFT001',
-      jobBand: 'B1',
-      salary: '$65,000',
-      userPassword: '********',
-      userId: 'michael.brown',
-      faceEmbedding: 'embedded_data_string',
-      updatedCv: '/static/cv/michael_brown.pdf',
-      entityName: 'Principal',
-      kra: 'Data visualization, Statistical analysis, Report generation',
-      email: 'michael.brown@company.com',
-      phone: '+1-234-567-8903',
-      address: '789 Pine St, TX 75001',
-      reportingManager: 'Lisa Chen',
-      status: 'Verified'
-    },
-    {
-      id: 4,
-      employeeId: 'EMP004',
-      name: 'Emily Davis',
-      dateOfJoining: '2021-11-05',
-      branch: 'New York',
-      designation: 'HR Manager',
-      designationId: 'HR001',
-      role: 'Manager',
-      shiftId: 'SHIFT003',
-      jobBand: 'B4',
-      salary: '$85,000',
-      userPassword: '********',
-      userId: 'emily.davis',
-      faceEmbedding: 'embedded_data_string',
-      updatedCv: '/static/cv/emily_davis.pdf',
-      entityName: 'Principal',
-      kra: 'Recruitment, Employee relations, Policy development',
-      email: 'emily.davis@company.com',
-      phone: '+1-234-567-8904',
-      address: '321 Elm St, NY 10002',
-      reportingManager: 'Robert Taylor',
-      status: 'Verified'
-    },
-    {
-      id: 5,
-      employeeId: 'EMP005',
-      name: 'David Wilson',
-      dateOfJoining: '2022-12-01',
-      branch: 'California',
-      designation: 'Marketing Specialist',
-      designationId: 'MS001',
-      role: 'Specialist',
-      shiftId: 'SHIFT002',
-      jobBand: 'B2',
-      salary: '$70,000',
-      userPassword: '********',
-      userId: 'david.wilson',
-      faceEmbedding: 'embedded_data_string',
-      updatedCv: '/static/cv/david_wilson.pdf',
-      entityName: 'Principal',
-      kra: 'Campaign management, Social media strategy, Content creation',
-      email: 'david.wilson@company.com',
-      phone: '+1-234-567-8905',
-      address: '654 Maple Dr, CA 90211',
-      reportingManager: 'Anna Martinez',
-      status: 'Payroll'
-    },
-    {
-      id: 6,
-      employeeId: 'EMP006',
-      name: 'Alice Cooper',
-      dateOfJoining: '2023-02-15',
-      branch: 'Texas',
-      designation: 'UI/UX Designer',
-      designationId: 'UD001',
-      role: 'Designer',
-      shiftId: 'SHIFT001',
-      jobBand: 'B2',
-      salary: '$72,000',
-      userPassword: '********',
-      userId: 'alice.cooper',
-      faceEmbedding: 'embedded_data_string',
-      updatedCv: '/static/cv/alice_cooper.pdf',
-      entityName: 'Principal',
-      kra: 'UI design, User research, Prototyping',
-      email: 'alice.cooper@company.com',
-      phone: '+1-234-567-8906',
-      address: '987 Cedar Ave, TX 75002',
-      reportingManager: 'Design Lead',
-      status: 'Pending'
-    },
-    {
-      id: 7,
-      employeeId: 'EMP007',
-      name: 'Bob Smith',
-      dateOfJoining: '2023-04-20',
-      branch: 'New York',
-      designation: 'DevOps Engineer',
-      designationId: 'DO001',
-      role: 'Engineer',
-      shiftId: 'SHIFT001',
-      jobBand: 'B3',
-      salary: '$88,000',
-      userPassword: '********',
-      userId: 'bob.smith',
-      faceEmbedding: 'embedded_data_string',
-      updatedCv: '/static/cv/bob_smith.pdf',
-      entityName: 'Principal',
-      kra: 'Infrastructure management, CI/CD pipelines, Monitoring',
-      email: 'bob.smith@company.com',
-      phone: '+1-234-567-8907',
-      address: '654 Broadway, NY 10003',
-      reportingManager: 'Tech Lead',
-      status: 'Verified'
-    }
-  ]);
-
-  const [filteredEmployees, setFilteredEmployees] = useState(employees);
+  const [employees, setEmployees] = useState(mockEmployees);
+  const [filteredEmployees, setFilteredEmployees] = useState(mockEmployees);
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [designationFilter, setDesignationFilter] = useState('');
@@ -289,7 +409,7 @@ const EmployeeManagement = () => {
 
   const handleEditEmployee = (employee, e) => {
     e.stopPropagation();
-    navigate(`/employee/edit/${employee.id}`);
+    navigate(`/EmployeeDetailssection`);
   };
 
   const handleKraMouseEnter = (employee, e) => {
@@ -308,7 +428,6 @@ const EmployeeManagement = () => {
     setKraTooltip({ visible: false, employee: null, position: { x: 0, y: 0 } });
   };
 
-  // Preserved status colors with gradients
   const getStatusColor = (status) => {
     const colors = {
       'Verified': 'bg-gradient-to-r from-green-500 to-emerald-600',
@@ -318,7 +437,6 @@ const EmployeeManagement = () => {
     return colors[status] || 'bg-gradient-to-r from-gray-500 to-slate-600';
   };
 
-  // Updated Breadcrumb with gradient text
   const Breadcrumb = () => {
     return (
       <nav className="flex mb-4" aria-label="Breadcrumb">
@@ -338,7 +456,6 @@ const EmployeeManagement = () => {
     );
   };
 
-  // Enhanced KRA Tooltip Component
   const KraTooltip = ({ employee, position }) => {
     if (!employee) return null;
 
@@ -354,7 +471,6 @@ const EmployeeManagement = () => {
       >
         <div className="font-medium mb-1">Key Result Areas:</div>
         <div className="text-gray-200">{employee.kra}</div>
-        {/* Arrow */}
         <div 
           className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"
         ></div>
@@ -362,7 +478,6 @@ const EmployeeManagement = () => {
     );
   };
 
-  // Updated Pagination Component with gradients
   const Pagination = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
@@ -470,13 +585,11 @@ const EmployeeManagement = () => {
       <div className="max-w-7xl mx-auto">
         <Breadcrumb />
         
-        {/* Header with gradient styling */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 mb-6">
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h2 className="text-xl font-bold bg-black bg-clip-text text-transparent">Employee Management</h2>
           </div>
 
-          {/* Search and Filters with gradients */}
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -511,7 +624,6 @@ const EmployeeManagement = () => {
           </div>
         </div>
 
-        {/* Employee Table with gradients */}
         {loading && filteredEmployees.length === 0 ? (
           <TableSkeleton
             columns={10}
@@ -553,8 +665,7 @@ const EmployeeManagement = () => {
                           <button
                             onMouseEnter={(e) => handleKraMouseEnter(employee, e)}
                             onMouseLeave={handleKraMouseLeave}
-                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1 rounded-full transition-colors"
-                            title="View KRA"
+                            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 p-1 rounded-full transition-colors"
                           >
                             <FileText size={16} />
                           </button>
@@ -587,7 +698,6 @@ const EmployeeManagement = () => {
           </div>
         )}
 
-        {/* KRA Tooltip */}
         {kraTooltip.visible && kraTooltip.employee && (
           <KraTooltip employee={kraTooltip.employee} position={kraTooltip.position} />
         )}

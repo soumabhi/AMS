@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   CheckCircle, Clock, Calendar, AlertCircle, X, User, 
   FileText, ChevronDown, ChevronUp, Search, Download, 
@@ -139,7 +139,6 @@ const dummyAttendanceRequests = [
 
 const AttendanceApproval = ({ employees = [] }) => {
   const [attendanceRequests, setAttendanceRequests] = useState([]);
-  const [filteredRequests, setFilteredRequests] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -164,11 +163,25 @@ const AttendanceApproval = ({ employees = [] }) => {
     });
     
     setAttendanceRequests(enrichedRequests);
-    filterRequests(enrichedRequests, searchText, statusFilter);
-  }, [employees]);
+  }, []);
+
+  // Use useMemo to filter requests instead of useEffect to prevent infinite loops
+  const filteredRequests = useMemo(() => {
+    return attendanceRequests.filter(req => 
+      (statusFilter === 'All' || req.status === statusFilter) &&
+      (!searchText || 
+        req.emp_id.toLowerCase().includes(searchText.toLowerCase()) ||
+        req.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        req.email.toLowerCase().includes(searchText.toLowerCase()) ||
+        req.department?.toLowerCase().includes(searchText.toLowerCase()) ||
+        req.reason?.toLowerCase().includes(searchText.toLowerCase()) ||
+        req.shift_name?.toLowerCase().includes(searchText.toLowerCase())
+      )
+    );
+  }, [attendanceRequests, searchText, statusFilter]);
 
   // Statistics for the dashboard
-  const stats = {
+  const stats = useMemo(() => ({
     totalRequests: attendanceRequests.length,
     pendingRequests: attendanceRequests.filter(req => req.status === 'Pending').length,
     missingPunch: attendanceRequests.filter(req => 
@@ -178,40 +191,22 @@ const AttendanceApproval = ({ employees = [] }) => {
       (req.clock_in_time !== null && req.requested_clock_in !== req.clock_in_time) || 
       (req.clock_out_time !== null && req.requested_clock_out !== req.clock_out_time)
     ).length,
-  };
-
-  // Filter requests based on search text and status
-  const filterRequests = (requests, text, status) => {
-    const filtered = requests.filter(req => 
-      (status === 'All' || req.status === status) &&
-      (!text || 
-        req.emp_id.toLowerCase().includes(text.toLowerCase()) ||
-        req.name.toLowerCase().includes(text.toLowerCase()) ||
-        req.email.toLowerCase().includes(text.toLowerCase()) ||
-        req.department?.toLowerCase().includes(text.toLowerCase()) ||
-        req.reason?.toLowerCase().includes(text.toLowerCase()) ||
-        req.shift_name?.toLowerCase().includes(text.toLowerCase())
-      )
-    );
-    setFilteredRequests(filtered);
-  };
+  }), [attendanceRequests]);
 
   // Handle search
   const handleSearch = (value) => {
     setSearchText(value);
-    filterRequests(attendanceRequests, value, statusFilter);
   };
 
   // Handle status filter change
   const handleStatusChange = (value) => {
     setStatusFilter(value);
-    filterRequests(attendanceRequests, searchText, value);
   };
 
   // Show toast notification
   const showToast = (message, type = 'success') => {
     setToast({ message, type, isVisible: true });
-    setTimeout(() => setToast({ ...toast, isVisible: false }), 4000);
+    setTimeout(() => setToast(prev => ({ ...prev, isVisible: false })), 4000);
   };
 
   // Export to Excel functionality
@@ -252,11 +247,9 @@ const AttendanceApproval = ({ employees = [] }) => {
   const approveRequest = (id) => {
     setLoading(true);
     setTimeout(() => {
-      const updatedRequests = attendanceRequests.map(req => 
+      setAttendanceRequests(prev => prev.map(req => 
         req.id === id ? { ...req, status: 'Approved' } : req
-      );
-      setAttendanceRequests(updatedRequests);
-      filterRequests(updatedRequests, searchText, statusFilter);
+      ));
       showToast('Attendance request approved');
       setLoading(false);
       setActionModalVisible(false);
@@ -267,11 +260,9 @@ const AttendanceApproval = ({ employees = [] }) => {
   const rejectRequest = (id) => {
     setLoading(true);
     setTimeout(() => {
-      const updatedRequests = attendanceRequests.map(req => 
+      setAttendanceRequests(prev => prev.map(req => 
         req.id === id ? { ...req, status: 'Rejected' } : req
-      );
-      setAttendanceRequests(updatedRequests);
-      filterRequests(updatedRequests, searchText, statusFilter);
+      ));
       showToast('Attendance request rejected');
       setLoading(false);
       setActionModalVisible(false);
@@ -302,7 +293,7 @@ const AttendanceApproval = ({ employees = [] }) => {
   const handleEditSubmit = () => {
     setLoading(true);
     setTimeout(() => {
-      const updatedRequests = attendanceRequests.map(req => 
+      setAttendanceRequests(prev => prev.map(req => 
         req.id === currentRequest.id ? { 
           ...req, 
           requested_clock_in: formData.requested_clock_in,
@@ -310,9 +301,7 @@ const AttendanceApproval = ({ employees = [] }) => {
           admin_notes: formData.notes,
           status: 'Approved'
         } : req
-      );
-      setAttendanceRequests(updatedRequests);
-      filterRequests(updatedRequests, searchText, statusFilter);
+      ));
       showToast('Attendance request updated and approved');
       setActionModalVisible(false);
       setLoading(false);
@@ -340,7 +329,7 @@ const AttendanceApproval = ({ employees = [] }) => {
         message={toast.message}
         type={toast.type}
         isVisible={toast.isVisible}
-        onClose={() => setToast({ ...toast, isVisible: false })}
+        onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
       />
 
       <div className="p-6">
@@ -674,174 +663,110 @@ const AttendanceApproval = ({ employees = [] }) => {
                     <div className="flex justify-between">
                       <span>Out:</span>
                       <span className="font-medium">{currentRequest.requested_clock_out}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Employee Details */}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2">Employee Details</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Department:</span>
-                    <span className="ml-2 font-medium">{currentRequest.department}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Position:</span>
-                    <span className="ml-2 font-medium">{currentRequest.position}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Manager:</span>
-                    <span className="ml-2 font-medium">{currentRequest.manager_name}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Submitted:</span>
-                    <span className="ml-2 font-medium">{new Date(currentRequest.submitted_on).toLocaleDateString()}</span>
+                      </div>
                   </div>
                 </div>
               </div>
 
               {/* Reason */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-2">Reason for Request</h4>
-                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                  <p className="text-sm text-gray-700">{currentRequest.reason}</p>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Reason</h4>
+                <p className="text-sm text-gray-700">{currentRequest.reason}</p>
+              </div>
+
+              {/* Employee Details */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500">Department:</span>
+                  <span className="ml-2 font-medium">{currentRequest.department}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Position:</span>
+                  <span className="ml-2 font-medium">{currentRequest.position}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Manager:</span>
+                  <span className="ml-2 font-medium">{currentRequest.manager_name}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Evidence:</span>
+                  <span className="ml-2 font-medium">
+                    {currentRequest.supporting_evidence ? 'Yes' : 'No'}
+                  </span>
                 </div>
               </div>
 
-              {/* Supporting Evidence */}
-              {currentRequest.supporting_evidence && (
-                <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-sm text-green-800 font-medium">Supporting evidence provided</span>
-                </div>
-              )}
-
-              {/* Edit Times Section */}
-              {currentRequest.status === 'Pending' && (
-                <div className="space-y-4 border-t pt-4">
-                  <h4 className="text-sm font-semibold text-gray-800">Edit Time Request (Optional)</h4>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Clock In Time
-                      </label>
-                      <input
-                        type="time"
-                        name="requested_clock_in"
-                        value={formData.requested_clock_in}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Clock Out Time
-                      </label>
-                      <input
-                        type="time"
-                        name="requested_clock_out"
-                        value={formData.requested_clock_out}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                  
+              {/* Edit Times */}
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-semibold text-gray-800 mb-3">Adjust Times (Optional)</h4>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Admin Notes (Optional)
-                    </label>
-                    <textarea
-                      name="notes"
-                      value={formData.notes}
+                    <label className="block text-xs text-gray-500 mb-1">Clock In Time</label>
+                    <input
+                      type="time"
+                      name="requested_clock_in"
+                      value={formData.requested_clock_in}
                       onChange={handleInputChange}
-                      rows={3}
-                      placeholder="Add any notes about this approval..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Clock Out Time</label>
+                    <input
+                      type="time"
+                      name="requested_clock_out"
+                      value={formData.requested_clock_out}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     />
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* Admin Notes */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Admin Notes (Optional)</label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
+                  placeholder="Add any notes about this approval..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  rows="3"
+                />
+              </div>
             </div>
 
-            {/* Footer Actions */}
-            {currentRequest.status === 'Pending' && (
-              <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
-                <button
-                  onClick={() => setActionModalVisible(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                
-                <button
-                  onClick={() => rejectRequest(currentRequest.id)}
-                  className="px-4 py-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors flex items-center"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <X className="w-4 h-4 mr-2" />
-                  )}
-                  Reject
-                </button>
-                
-                <button
-                  onClick={() => {
-                    if (formData.requested_clock_in !== currentRequest.requested_clock_in || 
-                        formData.requested_clock_out !== currentRequest.requested_clock_out ||
-                        formData.notes) {
-                      handleEditSubmit();
-                    } else {
-                      approveRequest(currentRequest.id);
-                    }
-                  }}
-                  className="px-4 py-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors flex items-center"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                  )}
-                  {(formData.requested_clock_in !== currentRequest.requested_clock_in || 
-                    formData.requested_clock_out !== currentRequest.requested_clock_out ||
-                    formData.notes) ? 'Update & Approve' : 'Approve'}
-                </button>
-              </div>
-            )}
-
-            {/* Status Display for Non-Pending Requests */}
-            {currentRequest.status !== 'Pending' && (
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center justify-center">
-                  <div className={`flex items-center px-4 py-2 rounded-lg ${
-                    currentRequest.status === 'Approved' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {currentRequest.status === 'Approved' ? (
-                      <CheckCircle className="w-5 h-5 mr-2" />
-                    ) : (
-                      <X className="w-5 h-5 mr-2" />
-                    )}
-                    Request {currentRequest.status}
-                  </div>
-                </div>
-                {currentRequest.admin_notes && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <h5 className="text-sm font-medium text-gray-800 mb-1">Admin Notes:</h5>
-                    <p className="text-sm text-gray-600">{currentRequest.admin_notes}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Actions */}
+            <div className="px-4 py-3 border-t border-gray-200 flex justify-end space-x-3 bg-gray-50">
+              <button
+                onClick={() => setActionModalVisible(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              
+              {currentRequest.status === 'Pending' && (
+                <>
+                  <button
+                    onClick={() => rejectRequest(currentRequest.id)}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Reject'}
+                  </button>
+                  
+                  <button
+                    onClick={handleEditSubmit}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? <Loader className="w-4 h-4 animate-spin" /> : 'Approve'}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
