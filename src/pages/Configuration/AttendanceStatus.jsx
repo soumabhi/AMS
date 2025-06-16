@@ -27,16 +27,18 @@ const TableSkeleton = () => {
 };
 
 // Enhanced Input Component
-const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false, maxLength }) => {
+const Input = ({ label, name, value, onChange, placeholder, error, type = "text", className = "", disabled = false, maxLength }) => {
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-semibold text-gray-700">
+        <label htmlFor={name} className="block text-sm font-semibold text-gray-700">
           {label}
         </label>
       )}
       <div className="relative">
         <input
+          id={name}
+          name={name}
           type={type}
           value={value}
           onChange={onChange}
@@ -62,16 +64,18 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
 };
 
 // Enhanced TextArea Component
-const TextArea = ({ label, value, onChange, placeholder, error, className = "", disabled = false, rows = 4, maxLength }) => {
+const TextArea = ({ label, name, value, onChange, placeholder, error, className = "", disabled = false, rows = 4, maxLength }) => {
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-semibold text-gray-700">
+        <label htmlFor={name} className="block text-sm font-semibold text-gray-700">
           {label}
         </label>
       )}
       <div className="relative">
         <textarea
+          id={name}
+          name={name}
           rows={rows}
           value={value}
           onChange={onChange}
@@ -162,6 +166,7 @@ const StatusManagement = () => {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, isVisible: true });
+    setTimeout(hideToast, 5000);
   };
 
   const hideToast = () => {
@@ -190,8 +195,8 @@ const StatusManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    setValidationErrors({ ...validationErrors, [name]: '' });
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setValidationErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
@@ -206,7 +211,8 @@ const StatusManagement = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!validateForm()) {
       showToast('Please fix all validation errors', 'error');
       return;
@@ -409,7 +415,7 @@ const StatusManagement = () => {
           </div>
 
           <div className="flex-1 p-6 overflow-auto">
-            <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <Input
                 label="Status Name *"
                 name="statusName"
@@ -433,8 +439,8 @@ const StatusManagement = () => {
               <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-start">
                   <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center mr-3 mt-0.5">
-                                                          <AlertCircle className="w-4 h-4 text-white" />
-                                                      </div>
+                    <AlertCircle className="w-4 h-4 text-white" />
+                  </div>
                   <div className="text-sm text-gray-800">
                     <p className="font-semibold mb-2">Guidelines:</p>
                     <ul className="space-y-1">
@@ -454,7 +460,7 @@ const StatusManagement = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
 
           <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
@@ -462,6 +468,7 @@ const StatusManagement = () => {
               {editingStatus && (
                 <button
                   onClick={handleCancel}
+                  type="button"
                   className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   Cancel
@@ -470,6 +477,7 @@ const StatusManagement = () => {
               <button
                 onClick={handleSubmit}
                 disabled={submitLoading}
+                type="button"
                 className="flex-1 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-xl hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <div className="flex items-center justify-center">

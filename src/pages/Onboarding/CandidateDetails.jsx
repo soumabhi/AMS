@@ -176,9 +176,12 @@ const CandidateDetails = () => {
                 </div>
               </div>
               <div className="flex flex-col space-y-2">
-                <span className="inline-block px-3 py-1 rounded-full bg-white bg-opacity-20 text-sm">
-                  {candidate.status}
-                </span>
+              <div className="flex justify-center">
+  <span className="inline-block px-3 py-1 rounded-full bg-gray-200 bg-opacity-20 text-black">
+    {candidate.status}
+  </span>
+</div>
+
                 <div className="flex items-center text-sm">
                   <Calendar className="w-4 h-4 mr-1" />
                   Applied: {formatDate(candidate.appliedDate)}

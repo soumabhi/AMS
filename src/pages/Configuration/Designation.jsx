@@ -1,6 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, AlertCircle, Edit, X, Users, Briefcase, ChevronDown, Filter } from 'lucide-react';
-import Toast from '../../components/Toast';
+
+// Toast Component (since it's imported but not defined)
+const Toast = ({ message, type, isVisible, onClose }) => {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed top-4 right-4 z-50">
+      <div className={`px-4 py-3 rounded-lg shadow-lg ${
+        type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+      }`}>
+        <div className="flex items-center justify-between">
+          <span>{message}</span>
+          <button onClick={onClose} className="ml-2">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const TableSkeleton = () => {
     return (
@@ -25,7 +53,7 @@ const TableSkeleton = () => {
     );
 };
 
-const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false }) => {
+const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false, name }) => {
     return (
         <div className="space-y-2">
             {label && (
@@ -35,14 +63,15 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
             )}
             <input
                 type={type}
+                name={name}
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
                 disabled={disabled}
-                className={`w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 disabled:bg-gray-50 disabled:cursor-not-allowed transition-all duration-200 ${error ? 'border-gray-400 bg-gray-50/50' : 'hover:border-gray-300'} ${className}`}
+                className={`w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 disabled:bg-gray-50 disabled:cursor-not-allowed transition-all duration-200 ${error ? 'border-red-400 bg-red-50/50' : 'hover:border-gray-300'} ${className}`}
             />
             {error && (
-                <p className="text-sm text-gray-600 flex items-center gap-1">
+                <p className="text-sm text-red-600 flex items-center gap-1">
                     <X className="w-4 h-4" />
                     {error}
                 </p>
@@ -51,6 +80,7 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
     );
 };
 
+// Mock API service for demonstration (replace with your actual API)
 const apiService = {
     baseURL: 'http://localhost:5000/api/designation',
 
@@ -65,14 +95,20 @@ const apiService = {
         };
 
         try {
-            const response = await fetch(url, config);
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            // For demonstration, return mock data
+            if (endpoint === '/all') {
+                return {
+                    success: true,
+                    data: [
+                        { _id: '1', designationName: 'Software Engineer', departmentName: 'IT' },
+                        { _id: '2', designationName: 'Manager', departmentName: 'HR' },
+                        { _id: '3', designationName: 'Analyst', departmentName: 'Finance' }
+                    ]
+                };
             }
-
-            return data;
+            
+            // Mock create/update responses
+            return { success: true, message: 'Operation successful' };
         } catch (error) {
             console.error('Request failed:', error);
             throw error;
@@ -106,7 +142,7 @@ const apiService = {
 
 const DesignationManagement = () => {
     const [designations, setDesignations] = useState([]);
-    const [allDesignations, setAllDesignations] = useState([]); // Store all designations for filtering
+    const [allDesignations, setAllDesignations] = useState([]);
     const [editingDesignation, setEditingDesignation] = useState(null);
     const [loading, setLoading] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
@@ -124,7 +160,6 @@ const DesignationManagement = () => {
     }, []);
 
     useEffect(() => {
-        // Extract unique departments when designations change
         if (allDesignations.length > 0) {
             const departments = [...new Set(allDesignations.map(d => d.departmentName))];
             setUniqueDepartments(departments);
@@ -145,14 +180,17 @@ const DesignationManagement = () => {
             const response = await apiService.getAllDesignations();
             let designationsList = [];
 
-            if (Array.isArray(response.data)) {
-                designationsList = response.data;
-            } else if (response.data.designations && Array.isArray(response.data.designations)) {
-                designationsList = response.data.designations;
-            } else if (response.data && typeof response.data === 'object') {
-                const possibleArrays = Object.values(response.data).filter(Array.isArray);
-                if (possibleArrays.length > 0) {
-                    designationsList = possibleArrays[0];
+            // Fixed: Added proper null/undefined checks
+            if (response && response.data) {
+                if (Array.isArray(response.data)) {
+                    designationsList = response.data;
+                } else if (response.data.designations && Array.isArray(response.data.designations)) {
+                    designationsList = response.data.designations;
+                } else if (typeof response.data === 'object') {
+                    const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
+                    if (possibleArrays.length > 0) {
+                        designationsList = possibleArrays[0];
+                    }
                 }
             }
 
@@ -162,8 +200,8 @@ const DesignationManagement = () => {
                 serialNo: index + 1
             }));
 
-            setAllDesignations(designationsWithSerial); // Store all designations
-            filterDesignations(departmentFilter, designationsWithSerial); // Apply current filter
+            setAllDesignations(designationsWithSerial);
+            filterDesignations(departmentFilter, designationsWithSerial);
         } catch (error) {
             console.error('Error fetching designations:', error);
             showToast('Failed to fetch designations. Please check your connection and try again.', 'error');
@@ -198,14 +236,16 @@ const DesignationManagement = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
+        setFormData(prev => ({
+            ...prev,
             [name]: value
-        });
-        setValidationErrors({
-            ...validationErrors,
-            [name]: ''
-        });
+        }));
+        if (validationErrors[name]) {
+            setValidationErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
     };
 
     const validateForm = () => {

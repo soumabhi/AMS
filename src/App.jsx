@@ -37,6 +37,7 @@ import ForgotPassword from "./pages/ForgetPassword";
 function App() {
   return (
     <Router>
+     
       <DashboardLayout>
         <Routes>
           <Route path="/" element={<Dashboard />} />

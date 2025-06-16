@@ -14,7 +14,33 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import Toast from '../../components/Toast';
+
+// Toast component for notifications
+const Toast = ({ message, type, isVisible, onClose }) => {
+  if (!isVisible) return null;
+
+  const bgColor = {
+    success: 'bg-green-100 border-green-400 text-green-700',
+    error: 'bg-red-100 border-red-400 text-red-700',
+    info: 'bg-blue-100 border-blue-400 text-blue-700'
+  };
+
+  return (
+    <div className={`fixed top-4 right-4 border-l-4 ${bgColor[type]} px-4 py-3 rounded shadow-lg max-w-sm z-50`}>
+      <div className="flex items-center">
+        {type === 'success' ? (
+          <CheckCircle className="h-5 w-5 mr-2" />
+        ) : (
+          <AlertCircle className="h-5 w-5 mr-2" />
+        )}
+        <span>{message}</span>
+        <button onClick={onClose} className="ml-4">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // Dummy employee data with leave credits
 const employees = [
@@ -109,6 +135,7 @@ const LeaveManagement = () => {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, isVisible: true });
+    setTimeout(hideToast, 3000);
   };
 
   const hideToast = () => {
@@ -157,9 +184,10 @@ const LeaveManagement = () => {
     setDays(diffDays);
   };
 
-  const handleDateChange = (date, dateString) => {
+  const handleDateChange = (type, dateValue) => {
     if (dateSelectionType === 'single') {
-      if (date) {
+      if (dateValue) {
+        const date = new Date(dateValue);
         setSelectedDates([date, date]);
         setDays(1);
       } else {
@@ -167,12 +195,14 @@ const LeaveManagement = () => {
         setDays(0);
       }
     } else {
-      if (date && date.length === 2) {
-        setSelectedDates(date);
-        calculateDays(date);
+      if (type === 'start') {
+        setSelectedDates([dateValue ? new Date(dateValue) : null, selectedDates[1]]);
       } else {
-        setSelectedDates([]);
-        setDays(0);
+        setSelectedDates([selectedDates[0], dateValue ? new Date(dateValue) : null]);
+      }
+      
+      if (selectedDates[0] && selectedDates[1]) {
+        calculateDays([selectedDates[0], selectedDates[1]]);
       }
     }
   };
@@ -193,15 +223,19 @@ const LeaveManagement = () => {
       return;
     }
 
-    console.log({
+    // In a real app, you would send this data to your backend
+    const leaveApplication = {
       empId: selectedEmployee,
+      name: employees.find(e => e.empId === selectedEmployee)?.name,
       leaveType,
       days,
       reason,
       dates: selectedDates,
-      status: 'pending'
-    });
+      status: 'pending',
+      appliedOn: new Date().toISOString()
+    };
 
+    console.log('Leave application submitted:', leaveApplication);
     showToast('Leave application submitted successfully!');
     setLeaveModalVisible(false);
     resetForm();
@@ -214,10 +248,6 @@ const LeaveManagement = () => {
     setSelectedDates([]);
     setDateSelectionType('single');
     setSelectedEmployee(null);
-  };
-
-  const disabledDate = (current) => {
-    return current < new Date().setHours(0, 0, 0, 0);
   };
 
   const requestSort = (key) => {
@@ -258,6 +288,11 @@ const LeaveManagement = () => {
       case 'paternity': return 'bg-gradient-to-r from-indigo-100 to-indigo-200';
       default: return 'bg-gradient-to-r from-gray-100 to-gray-200';
     }
+  };
+
+  const getMinEndDate = () => {
+    if (!selectedDates[0]) return new Date().toISOString().split('T')[0];
+    return selectedDates[0].toISOString().split('T')[0];
   };
 
   return (
@@ -410,17 +445,17 @@ const LeaveManagement = () => {
                             <Plus className="w-4 h-4 mr-2" />
                             Apply Leave
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => toggleExpandEmployee(employee.empId)}
                             className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-lg hover:from-gray-200 hover:to-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
                           >
                             <Info className="w-4 h-4 mr-2" />
                             {expandedEmployee === employee.empId ? 'Hide' : 'View'}
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
-                    {expandedEmployee === employee.empId && (
+                    {/* {expandedEmployee === employee.empId && (
                       <tr className="bg-gray-50">
                         <td colSpan="6" className="px-6 py-4">
                           <div className="grid grid-cols-3 gap-6">
@@ -447,7 +482,7 @@ const LeaveManagement = () => {
                           </div>
                         </td>
                       </tr>
-                    )}
+                    )} */}
                   </React.Fragment>
                 ))}
               </tbody>
@@ -484,190 +519,184 @@ const LeaveManagement = () => {
       </div>
 
       {/* Leave Application Modal */}
-      {leaveModalVisible && (
-        <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Calendar className="w-6 h-6 text-gray-700 mr-2" />
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Apply for Leave
-                  </h2>
-                </div>
-                <button
-                  onClick={() => {
-                    setLeaveModalVisible(false);
-                    resetForm();
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+     {leaveModalVisible && (
+  <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Apply for Leave
+          </h2>
+          <button
+            onClick={() => {
+              setLeaveModalVisible(false);
+              resetForm();
+            }}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
-            <div className="p-6 space-y-6">
-              {/* Employee Info */}
-              {selectedEmployee && (
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <div className="font-medium text-gray-700 mb-2">Employee Information</div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Employee ID</p>
-                      <p className="font-medium">{selectedEmployee}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">
-                        {employees.find(e => e.empId === selectedEmployee)?.name}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Leave Type Selection */}
+      <div className="p-4 space-y-4">
+        {/* Employee Info */}
+        {selectedEmployee && (
+          <div className="bg-gray-50 p-3 rounded-lg text-sm">
+            <div className="font-medium text-gray-700 mb-1">Employee</div>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Leave Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200"
-                  value={leaveType}
-                  onChange={(e) => setLeaveType(e.target.value)}
-                >
-                  <option value="">Select leave type</option>
-                  <option value="casual">Casual Leave</option>
-                  <option value="sick">Sick Leave</option>
-                  <option value="earned">Earned Leave</option>
-                  <option value="optional">Optional Holiday</option>
-                  <option value="maternity">Maternity Leave</option>
-                  <option value="paternity">Paternity Leave</option>
-                </select>
+                <p className="text-xs text-gray-500">ID</p>
+                <p>{selectedEmployee}</p>
               </div>
-
-              {/* Leave Credit Info */}
-              {leaveCreditInfo && (
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                  <div className="flex items-center mb-3">
-                    <Info className="w-5 h-5 text-blue-500 mr-2" />
-                    <span className="font-medium">Leave Credit Information</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 mb-3">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Days</p>
-                      <p className="text-lg font-bold">{leaveCreditInfo.total}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Used Days</p>
-                      <p className="text-lg font-bold">{leaveCreditInfo.used}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Remaining Days</p>
-                      <p className="text-lg font-bold text-green-600">{leaveCreditInfo.remaining}</p>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className={`h-2.5 rounded-full ${leaveCreditInfo.remaining > 0 ? 'bg-blue-600' : 'bg-red-600'}`} 
-                      style={{ width: `${(leaveCreditInfo.used / leaveCreditInfo.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-
-              {/* Date Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date Selection <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-4 mb-4">
-                  <button
-                    onClick={() => setDateSelectionType('single')}
-                    className={`px-4 py-2 rounded-lg ${dateSelectionType === 'single' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'}`}
-                  >
-                    Single Day
-                  </button>
-                  <button
-                    onClick={() => setDateSelectionType('multiple')}
-                    className={`px-4 py-2 rounded-lg ${dateSelectionType === 'multiple' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'}`}
-                  >
-                    Multiple Days
-                  </button>
-                </div>
-                {dateSelectionType === 'single' ? (
-                  <input
-                    type="date"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200"
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => handleDateChange(e.target.valueAsDate, e.target.value)}
-                  />
-                ) : (
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="block text-sm text-gray-600 mb-1">From</label>
-                      <input
-                        type="date"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200"
-                        min={new Date().toISOString().split('T')[0]}
-                        onChange={(e) => handleDateChange([e.target.valueAsDate, selectedDates[1]], e.target.value)}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm text-gray-600 mb-1">To</label>
-                      <input
-                        type="date"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200"
-                        min={selectedDates[0] ? selectedDates[0].toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
-                        onChange={(e) => handleDateChange([selectedDates[0], e.target.valueAsDate], e.target.value)}
-                      />
-                    </div>
-                  </div>
-                )}
-                {days > 0 && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    Selected: {days} day{days !== 1 ? 's' : ''}
-                  </p>
-                )}
+                <p className="text-xs text-gray-500">Name</p>
+                <p>
+                  {employees.find(e => e.empId === selectedEmployee)?.name}
+                </p>
               </div>
-
-              {/* Reason */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Reason <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200"
-                  placeholder="Enter reason for leave"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                ></textarea>
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-4">
-              <button
-                onClick={() => {
-                  setLeaveModalVisible(false);
-                  resetForm();
-                }}
-                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmitLeave}
-                disabled={!leaveType || days <= 0 || !reason}
-                className="px-6 py-3 text-white bg-gradient-to-r from-gray-800 to-black rounded-xl hover:from-gray-900 hover:to-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                Submit Leave Application
-              </button>
             </div>
           </div>
+        )}
+
+        {/* Leave Type Selection */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Leave Type <span className="text-red-500">*</span>
+          </label>
+          <select
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500"
+            value={leaveType}
+            onChange={(e) => setLeaveType(e.target.value)}
+          >
+            <option value="">Select leave type</option>
+            <option value="casual">Casual Leave</option>
+            <option value="sick">Sick Leave</option>
+            <option value="earned">Earned Leave</option>
+          </select>
         </div>
-      )}
+
+        {/* Leave Credit Info */}
+        {leaveCreditInfo && (
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-sm">
+            <div className="flex items-center mb-2">
+              <Info className="w-4 h-4 text-blue-500 mr-1" />
+              <span className="font-medium">Leave Balance</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <div>
+                <p className="text-xs text-gray-600">Total</p>
+                <p className="font-bold">{leaveCreditInfo.total}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Used</p>
+                <p className="font-bold">{leaveCreditInfo.used}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Remaining</p>
+                <p className="font-bold text-green-600">{leaveCreditInfo.remaining}</p>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div 
+                className={`h-1.5 rounded-full ${leaveCreditInfo.remaining > 0 ? 'bg-blue-600' : 'bg-red-600'}`} 
+                style={{ width: `${(leaveCreditInfo.used / leaveCreditInfo.total) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {/* Date Selection */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Dates <span className="text-red-500">*</span>
+          </label>
+          <div className="flex gap-2 mb-2">
+            <button
+              onClick={() => setDateSelectionType('single')}
+              className={`px-3 py-1 text-sm rounded ${dateSelectionType === 'single' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'}`}
+            >
+              Single Day
+            </button>
+            <button
+              onClick={() => setDateSelectionType('multiple')}
+              className={`px-3 py-1 text-sm rounded ${dateSelectionType === 'multiple' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-800'}`}
+            >
+              Multiple Days
+            </button>
+          </div>
+          {dateSelectionType === 'single' ? (
+            <input
+              type="date"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500"
+              min={new Date().toISOString().split('T')[0]}
+              onChange={(e) => handleDateChange('single', e.target.value)}
+            />
+          ) : (
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-xs text-gray-600 mb-1">From</label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500"
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => handleDateChange('start', e.target.value)}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs text-gray-600 mb-1">To</label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500"
+                  min={getMinEndDate()}
+                  onChange={(e) => handleDateChange('end', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+          {days > 0 && (
+            <p className="mt-1 text-xs text-gray-600">
+              {days} day{days !== 1 ? 's' : ''} selected
+            </p>
+          )}
+        </div>
+
+        {/* Reason */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Reason <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            rows={3}
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-500/20 focus:border-gray-500"
+            placeholder="Enter reason for leave"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          ></textarea>
+        </div>
+      </div>
+
+      <div className="p-4 border-t border-gray-200 flex justify-end gap-3">
+        <button
+          onClick={() => {
+            setLeaveModalVisible(false);
+            resetForm();
+          }}
+          className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSubmitLeave}
+          disabled={!leaveType || days <= 0 || !reason}
+          className="px-4 py-2 text-sm text-white bg-gray-800 rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

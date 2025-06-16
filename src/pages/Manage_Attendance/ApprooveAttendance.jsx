@@ -781,7 +781,7 @@ const AttendanceApproval = ({ employees = [] }) => {
                 
                 <button
                   onClick={() => rejectRequest(currentRequest.id)}
-                  className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center"
+                  className="px-4 py-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors flex items-center"
                   disabled={loading}
                 >
                   {loading ? (
@@ -802,7 +802,7 @@ const AttendanceApproval = ({ employees = [] }) => {
                       approveRequest(currentRequest.id);
                     }
                   }}
-                  className="px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center"
+                  className="px-4 py-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors flex items-center"
                   disabled={loading}
                 >
                   {loading ? (

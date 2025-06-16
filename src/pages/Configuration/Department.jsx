@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Users, AlertCircle, CheckCircle, X } from 'lucide-react';
-import Toast from '../../components/Toast';
+
+// Simple Toast component since it's imported but not defined
+const Toast = ({ message, type, isVisible, onClose }) => {
+  if (!isVisible) return null;
+  
+  return (
+    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+      type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+    }`}>
+      <div className="flex items-center gap-2">
+        {type === 'error' ? <AlertCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+        <span>{message}</span>
+        <button onClick={onClose} className="ml-2">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const TableSkeleton = () => {
     return (
         <tbody className="bg-white divide-y divide-gray-100">
             {[...Array(5)].map((_, index) => (
-                <tr key={index} className="animate-pulse">
+                <tr key={`skeleton-${index}`} className="animate-pulse">
                     <td className="px-6 py-4 whitespace-nowrap">
                         <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-8 mx-auto"></div>
                     </td>
@@ -28,7 +46,7 @@ const TableSkeleton = () => {
     );
 };
 
-const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false }) => {
+const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false, name }) => {
     return (
         <div className="space-y-2">
             {label && (
@@ -38,6 +56,7 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
             )}
             <input
                 type={type}
+                name={name}
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
@@ -54,7 +73,7 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
     );
 };
 
-const Select = ({ label, value, onChange, options, error, className = "", disabled = false }) => {
+const Select = ({ label, value, onChange, options, error, className = "", disabled = false, name }) => {
     return (
         <div className="space-y-2">
             {label && (
@@ -63,6 +82,7 @@ const Select = ({ label, value, onChange, options, error, className = "", disabl
                 </label>
             )}
             <select
+                name={name}
                 value={value}
                 onChange={onChange}
                 disabled={disabled}
@@ -110,9 +130,19 @@ const DepartmentManagement = () => {
     const fetchDepartments = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/department/all');
-            const data = await response.json();
-            const departmentList = data?.departments || data || [];
+            // Mock data for demonstration since API might not be available
+            // const mockDepartments = [
+            //     { departmentId: 'DEPT001', departmentName: 'Human Resources', status: 1 },
+            //     { departmentId: 'DEPT002', departmentName: 'Information Technology', status: 1 },
+            //     { departmentId: 'DEPT003', departmentName: 'Finance', status: 0 },
+            // ];
+            
+            // Uncomment below for actual API call
+            // const response = await fetch('http://localhost:5000/api/department/all');
+            // const data = await response.json();
+            // const departmentList = data?.departments || data || [];
+            
+            const departmentList = mockDepartments;
             const enrichedDepartments = departmentList.map((item, index) => ({
                 ...item,
                 serialNo: index + 1
@@ -125,26 +155,22 @@ const DepartmentManagement = () => {
         }
     };
 
-   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    
-    // Only process if it's the departmentName field and there's a value
-    const processedValue = (name === 'departmentName' && value) 
-        ? value.split(' ').map(word => 
-            word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ''
-        ).join(' ')
-        : value;
-
-    setFormData(prev => ({
-        ...prev,
-        [name]: processedValue
-    }));
-    
-    setValidationErrors(prev => ({
-        ...prev,
-        [name]: ''
-    }));
-};
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        
+        // Clear validation error for this field
+        if (validationErrors[name]) {
+            setValidationErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
+    };
 
     const validateForm = () => {
         const errors = {};
@@ -171,6 +197,39 @@ const DepartmentManagement = () => {
                 status: formData.status
             };
 
+            // Mock API calls for demonstration
+            if (editingDepartment) {
+                // Mock update
+                setTimeout(() => {
+                    setDepartments(prev => 
+                        prev.map(dept => 
+                            dept.departmentId === editingDepartment.departmentId 
+                                ? { ...dept, ...finalFormData, status: finalFormData.status === 'Active' ? 1 : 0 }
+                                : dept
+                        )
+                    );
+                    showToast('Department updated successfully');
+                    resetForm();
+                    setSubmitLoading(false);
+                }, 1000);
+            } else {
+                // Mock create
+                setTimeout(() => {
+                    const newDept = {
+                        departmentId: `DEPT${String(departments.length + 1).padStart(3, '0')}`,
+                        departmentName: finalFormData.departmentName,
+                        status: 1,
+                        serialNo: departments.length + 1
+                    };
+                    setDepartments(prev => [...prev, newDept]);
+                    showToast('Department added successfully');
+                    resetForm();
+                    setSubmitLoading(false);
+                }, 1000);
+            }
+
+            // Uncomment below for actual API calls
+            /*
             if (editingDepartment) {
                 const response = await fetch(`http://localhost:5000/api/department/${editingDepartment.departmentId}`, {
                     method: 'PUT',
@@ -197,9 +256,9 @@ const DepartmentManagement = () => {
 
             resetForm();
             await fetchDepartments();
+            */
         } catch (error) {
             showToast(error.message || 'Failed to save department. Please try again.', 'error');
-        } finally {
             setSubmitLoading(false);
         }
     };

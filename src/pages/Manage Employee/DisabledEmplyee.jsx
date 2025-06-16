@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, AlertCircle, CheckCircle, X, User, UserPlus, Search, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertCircle, CheckCircle, X, User, UserPlus, Search, FileSpreadsheet } from 'lucide-react';
 import Toast from '../../components/Toast';
+import * as XLSX from 'xlsx';
 
 // Skeleton Loader Component
 const TableSkeleton = () => {
@@ -41,33 +42,6 @@ const TableSkeleton = () => {
     );
 };
 
-// Enhanced Input Component
-const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false }) => {
-    return (
-        <div className="space-y-2">
-            {label && (
-                <label className="block text-sm font-semibold text-gray-700">
-                    {label}
-                </label>
-            )}
-            <input
-                type={type}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                disabled={disabled}
-                className={`w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 disabled:bg-gray-50 disabled:cursor-not-allowed transition-all duration-200 ${error ? 'border-gray-400 bg-gray-50/50' : 'hover:border-gray-300'} ${className}`}
-            />
-            {error && (
-                <p className="text-sm text-gray-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
-                    {error}
-                </p>
-            )}
-        </div>
-    );
-};
-
 const DisabledEmployees = () => {
     // Dummy data - in a real app, this would come from an API
     const dummyDisabledEmployees = Array.from({ length: 25 }, (_, i) => ({
@@ -86,7 +60,7 @@ const DisabledEmployees = () => {
     const [employees, setEmployees] = useState(dummyDisabledEmployees);
     const [filteredEmployees, setFilteredEmployees] = useState(dummyDisabledEmployees);
     const [searchText, setSearchText] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading] = useState(false);
     const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
     const [detailModalVisible, setDetailModalVisible] = useState(false);
     const [enableModalVisible, setEnableModalVisible] = useState(false);
@@ -96,10 +70,7 @@ const DisabledEmployees = () => {
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type, isVisible: true });
-    };
-
-    const hideToast = () => {
-        setToast({ ...toast, isVisible: false });
+        setTimeout(() => setToast(prev => ({ ...prev, isVisible: false })), 3000);
     };
 
     const handleSearch = (value) => {
@@ -168,14 +139,35 @@ const DisabledEmployees = () => {
     };
 
     const getDepartmentColor = (department) => {
-        switch (department) {
-            case 'HR': return 'bg-gradient-to-r from-gray-500 to-gray-500 text-white';
-            case 'Finance': return 'bg-gradient-to-r from-gray-500 to-gray-500 text-white';
-            case 'Engineering': return 'bg-gradient-to-r from-gray-500 to-gray-500 text-white';
-            case 'Marketing': return 'bg-gradient-to-r from-gray-500 to-gray-500 text-white';
-            case 'Operations': return 'bg-gradient-to-r from-gray-500 to-gray-500 text-white';
-            default: return 'bg-gradient-to-r from-gray-500 to-gray-500 text-white';
-        }
+        const colors = {
+            'HR': 'bg-black',
+            'Finance':'bg-black',
+            'Engineering': 'bg-black',
+            'Marketing': 'bg-black',
+            'Operations': 'bg-black'
+        };
+        return colors[department] || 'bg-gradient-to-r from-gray-500 to-gray-600';
+    };
+
+    const exportToExcel = () => {
+        const dataForExport = filteredEmployees.map(emp => ({
+            'Employee ID': emp.emp_id,
+            'Name': emp.name,
+            'Email': emp.email,
+            'Department': emp.department,
+            'Position': emp.position,
+            'Join Date': formatDate(emp.join_date),
+            'Disabled Date': formatDate(emp.disabled_date),
+            'Reason': emp.reason,
+            'Last Active': formatDateTime(emp.last_active)
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataForExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Disabled Employees");
+        XLSX.writeFile(workbook, `Disabled_Employees_${new Date().toISOString().split('T')[0]}.xlsx`);
+        
+        showToast('Exported successfully to Excel', 'success');
     };
 
     return (
@@ -184,7 +176,7 @@ const DisabledEmployees = () => {
                 message={toast.message}
                 type={toast.type}
                 isVisible={toast.isVisible}
-                onClose={hideToast}
+                onClose={() => setToast(prev => ({ ...prev, isVisible: false }))}
             />
 
             <div className="p-8">
@@ -200,8 +192,8 @@ const DisabledEmployees = () => {
                 </div>
 
                 {/* Search and Controls */}
-                <div className="flex justify-between items-center mb-6">
-                    <div className="relative w-96">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div className="relative w-full sm:w-96">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-5 w-5 text-gray-400" />
                         </div>
@@ -210,195 +202,188 @@ const DisabledEmployees = () => {
                             className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200 hover:border-gray-300"
                             placeholder="Search employees..."
                             value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSearch(searchText)}
+                            onChange={(e) => handleSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex gap-3">
-                        <button className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200 shadow-sm hover:shadow-md">
-                            <Download className="w-4 h-4" />
-                            Export
-                        </button>
-                    </div>
+                    <button 
+                        onClick={exportToExcel}
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200 shadow-sm hover:shadow-md w-full sm:w-auto"
+                    >
+                        <FileSpreadsheet className="w-4 h-4" />
+                        Export
+                    </button>
                 </div>
 
                 {/* Enhanced Table */}
-       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                <tr>
-                    <th className="px-3 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        #
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        Employee
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        Employee ID
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        Department
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        Disabled Since
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        Reason
-                    </th>
-                    <th className="px-3 py-2 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">
-                        Actions
-                    </th>
-                </tr>
-            </thead>
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+                    <table className="min-w-full divide-y divide-gray-100">
+                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                            <tr>
+                                <th className="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                    #
+                                </th>
+                                <th className="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                    Employee
+                                </th>
+                                <th className="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                    Employee ID
+                                </th>
+                                <th className="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                    Department
+                                </th>
+                                <th className="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                    Disabled Since
+                                </th>
+                                <th className="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                    Reason
+                                </th>
+                                <th className="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
 
-            {loading ? (
-                <TableSkeleton />
-            ) : (
-                <tbody className="bg-white divide-y divide-gray-50">
-                    {filteredEmployees.map((employee, index) => (
-                        <tr key={employee.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                            <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold mx-auto">
-                                    {index + 1}
-                                </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <div 
-                                    className="cursor-pointer hover:text-blue-500"
-                                    onClick={() => showEmployeeDetails(employee)}
-                                >
-                                    <div className="font-medium text-sm">{employee.name}</div>
-                                    <div className="text-gray-500 text-xs">{employee.position}</div>
-                                </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-sm font-mono text-gray-900 text-center">
-                                {employee.emp_id}
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${getDepartmentColor(employee.department)}`}>
-                                    {employee.department}
-                                </span>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center">
-                                {formatDate(employee.disabled_date)}
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <span className="text-sm font-medium text-gray-700">
-                                    {employee.reason || 'Not specified'}
-                                </span>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <button
-                                    onClick={() => showEnableModal(employee)}
-                                    className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 border border-white-700 rounded-lg hover:from-gray-700 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
-                                >
-                                    <UserPlus className="w-4 h-4 mr-1" />
-                                    Enable
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
+                        {loading ? (
+                            <TableSkeleton />
+                        ) : (
+                            <tbody className="bg-white divide-y divide-gray-50">
+                                {filteredEmployees.map((employee, index) => (
+                                    <tr key={employee.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
+                                        <td className="px-3 py-2 whitespace-nowrap text-left">
+                                            <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                                {index + 1}
+                                            </div>
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-left">
+                                            <div 
+                                                className="cursor-pointer hover:text-blue-500"
+                                                onClick={() => showEmployeeDetails(employee)}
+                                            >
+                                                <div className="font-medium text-sm">{employee.name}</div>
+                                                <div className="text-gray-500 text-xs">{employee.position}</div>
+                                            </div>
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm font-mono text-gray-900 text-left">
+                                            {employee.emp_id}
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-left">
+                                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${getDepartmentColor(employee.department)} text-white`}>
+                                                {employee.department}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-left">
+                                            {formatDate(employee.disabled_date)}
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-left">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                {employee.reason || 'Not specified'}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 py-2 whitespace-nowrap text-left">
+                                            <button
+                                                onClick={() => showEnableModal(employee)}
+                                                className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 border border-white-700 rounded-lg hover:from-gray-700 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                            >
+                                                <UserPlus className="w-4 h-4 mr-1" />
+                                                Enable
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
 
-                    {!loading && filteredEmployees.length === 0 && (
-                        <tr>
-                            <td colSpan="7" className="px-3 py-12 text-center">
-                                <div className="text-center">
-                                    <div className="mx-auto w-20 h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-3">
-                                        <User className="w-10 h-10 text-gray-500" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No disabled employees found</h3>
-                                    <p className="text-gray-500">Try adjusting your search query</p>
-                                </div>
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            )}
-        </table>
-</div>
+                                {!loading && filteredEmployees.length === 0 && (
+                                    <tr>
+                                        <td colSpan="7" className="px-3 py-12 text-center">
+                                            <div className="text-center">
+                                                <div className="mx-auto w-20 h-20 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-3">
+                                                    <User className="w-10 h-10 text-gray-500" />
+                                                </div>
+                                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No disabled employees found</h3>
+                                                <p className="text-gray-500">Try adjusting your search query</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        )}
+                    </table>
+                </div>
             </div>
 
             {/* Employee Detail Modal */}
             {detailModalVisible && (
                 <div className="fixed inset-0 bg-black/70 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-auto">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-auto">
+                        <div className="p-4 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-xl font-bold bg-black bg-clip-text text-transparent">
+                                    <h2 className="text-lg font-semibold text-gray-900">
                                         Employee Details
                                     </h2>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        View and manage employee details
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        View employee information
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setDetailModalVisible(false)}
-                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="p-6">
+                        <div className="p-4">
                             {selectedEmployee && (
                                 <div>
-                                    <div className="flex items-start gap-6 mb-8">
-                                        <div className="w-20 h-20 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center text-gray-500">
-                                            <User className="w-10 h-10" />
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                                            <User className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">{selectedEmployee.name}</h3>
-                                            <p className="text-gray-600">{selectedEmployee.position}</p>
-                                            <p className="text-gray-500">{selectedEmployee.department} Department</p>
+                                            <h3 className="text-lg font-semibold text-gray-900">{selectedEmployee.name}</h3>
+                                            <p className="text-sm text-gray-600">{selectedEmployee.position}</p>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                                            <h4 className="text-sm font-semibold text-gray-500 mb-2">Employee ID</h4>
-                                            <p className="text-gray-900 font-mono">{selectedEmployee.emp_id}</p>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                            <h4 className="text-xs font-medium text-gray-500 mb-1">Employee ID</h4>
+                                            <p className="text-sm text-gray-900 font-mono">{selectedEmployee.emp_id}</p>
                                         </div>
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                                            <h4 className="text-sm font-semibold text-gray-500 mb-2">Email</h4>
-                                            <a href={`mailto:${selectedEmployee.email}`} className="text-blue-600 hover:underline">
+                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                            <h4 className="text-xs font-medium text-gray-500 mb-1">Email</h4>
+                                            <a href={`mailto:${selectedEmployee.email}`} className="text-sm text-blue-600 hover:underline">
                                                 {selectedEmployee.email}
                                             </a>
                                         </div>
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                                            <h4 className="text-sm font-semibold text-gray-500 mb-2">Join Date</h4>
-                                            <p className="text-gray-900">{formatDate(selectedEmployee.join_date)}</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                                <h4 className="text-xs font-medium text-gray-500 mb-1">Join Date</h4>
+                                                <p className="text-sm text-gray-900">{formatDate(selectedEmployee.join_date)}</p>
+                                            </div>
+                                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                                <h4 className="text-xs font-medium text-gray-500 mb-1">Disabled Date</h4>
+                                                <p className="text-sm text-gray-900">{formatDate(selectedEmployee.disabled_date)}</p>
+                                            </div>
                                         </div>
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                                            <h4 className="text-sm font-semibold text-gray-500 mb-2">Disabled Date</h4>
-                                            <p className="text-gray-900">{formatDate(selectedEmployee.disabled_date)}</p>
-                                        </div>
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4 md:col-span-2">
-                                            <h4 className="text-sm font-semibold text-gray-500 mb-2">Reason</h4>
-                                            <p className="text-gray-900">{selectedEmployee.reason || 'Not specified'}</p>
-                                        </div>
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                                            <h4 className="text-sm font-semibold text-gray-500 mb-2">Last Active</h4>
-                                            <p className="text-gray-900">{formatDateTime(selectedEmployee.last_active)}</p>
-                                        </div>
-                                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                                            <h4 className="text-sm font-semibold text-gray-500 mb-2">Status</h4>
-                                            <span className="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-red-100 to-red-200 text-red-800">
+                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                            <h4 className="text-xs font-medium text-gray-500 mb-1">Status</h4>
+                                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 Disabled
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="mt-8 flex justify-end">
+                                    <div className="mt-6 flex justify-end">
                                         <button
                                             onClick={() => {
                                                 setDetailModalVisible(false);
                                                 showEnableModal(selectedEmployee);
                                             }}
-                                            className="inline-flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-black to-black border border-black-700 rounded-lg hover:from-black-700 hover:to-black-800 focus:outline-none focus:ring-2 focus:ring-black-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                            className="inline-flex items-center px-3 py-2 text-xs font-medium text-white bg-black border border-black rounded-md hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-black-500 transition-colors"
                                         >
-                                            <UserPlus className="w-4 h-4 mr-2" />
+                                            <UserPlus className="w-3 h-3 mr-1.5" />
                                             Re-enable Employee
                                         </button>
                                     </div>

@@ -145,7 +145,7 @@ const LoginPage = () => {
               </div>
 
               <div className="text-sm">
-                <a href="/ForgotPassword" className="font-medium text-blue-600 hover:text-blue-500">
+                <a href="/ForgotPassword" className="font-medium text-gray-600 hover:text-black">
                   Forgot your password?
                 </a>
               </div>
@@ -155,7 +155,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors duration-200"
               >
                 {isLoading ? (
                   <>

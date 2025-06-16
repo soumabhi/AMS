@@ -246,68 +246,26 @@ const LeaveCreditManagement = () => {
 
       <div className="p-8">
         {/* Header */}
-        <div className="mb-8 bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 backdrop-blur-sm p-6 rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl h-10 font-bold bg-black bg-clip-text text-transparent">
-                Leave Credit Management
-              </h1>
-              <p className="text-gray-600 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Manage employee leave balances and allocations
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Total Employees</p>
-                <p className="text-2xl font-bold text-gray-800">{leaveData.length}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+     <div className="mb-4 bg-gradient-to-r from-white to-gray-50 border-b border-gray-200 backdrop-blur-sm p-4 rounded-xl shadow-sm">
+  <div className="flex items-center justify-between">
+    <div>
+      <h1 className="text-xl font-bold bg-black bg-clip-text text-transparent">
+        Leave Credit Management
+      </h1>
+      <p className="text-sm text-gray-600 flex items-center gap-2">
+        <User className="w-3 h-3" />
+        Manage employee leave balances
+      </p>
+    </div>
+    <div className="text-right">
+      <p className="text-xs text-gray-500">Total Employees</p>
+      <p className="text-lg font-bold text-gray-800">{leaveData.length}</p>
+    </div>
+  </div>
+</div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-blue-200 rounded-full flex items-center justify-center mr-4">
-                <Clock className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-500">Avg. Sick Leave Used</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {Math.round(leaveData.reduce((sum, emp) => sum + emp.sick_leave.used, 0) / leaveData.length)}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-100 to-green-200 rounded-full flex items-center justify-center mr-4">
-                <Calendar className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-500">Avg. Casual Leave Used</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {Math.round(leaveData.reduce((sum, emp) => sum + emp.casual_leave.used, 0) / leaveData.length)}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full flex items-center justify-center mr-4">
-                <Briefcase className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-500">Avg. Maternity Leave Used</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {Math.round(leaveData.reduce((sum, emp) => sum + emp.maternity_leave.used, 0) / leaveData.length)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+  
+     
 
         {/* Filters */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6 mb-8">
