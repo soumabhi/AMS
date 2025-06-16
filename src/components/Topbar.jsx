@@ -1,10 +1,13 @@
 // src/components/Topbar.jsx
 import React, { useState, useEffect } from "react";
 import { User, LogOut, Calendar, Clock, Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Topbar = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showProfileCard, setShowProfileCard] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const navigate = useNavigate();
 
   const toggleProfileCard = () => {
     setShowProfileCard(!showProfileCard);
@@ -12,6 +15,20 @@ const Topbar = () => {
 
   const closeProfileCard = () => {
     setShowProfileCard(false);
+  };
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    setShowProfileCard(false);
+  };
+
+  const confirmLogout = () => {
+    // Here you would typically also clear any user session/tokens
+    navigate('/login'); // Redirect to login page
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   useEffect(() => {
@@ -120,13 +137,13 @@ const Topbar = () => {
                 
                 {/* Logout Button */}
                 <div className="pt-3 border-t border-gray-100">
-                  <a 
-                    href="/" 
+                  <button
+                    onClick={handleLogoutClick}
                     className="flex items-center justify-center space-x-2 w-full bg-black hover:bg-gray-800 text-white py-3 px-4 rounded-lg transition-all duration-200 font-medium"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Logout</span>
-                  </a>
+                  </button>
                 </div>
                 
                 {/* Arrow pointer */}
@@ -136,6 +153,37 @@ const Topbar = () => {
           )}
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/70 bg-opacity-50 z-50"></div>
+          
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+              <h3 className="text-xl font-bold mb-4">Confirm Logout</h3>
+              <p className="text-gray-600 mb-6">Are you sure you want to logout from the system?</p>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={cancelLogout}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  Yes, Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

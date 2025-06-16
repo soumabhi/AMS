@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Settings,
@@ -26,7 +26,7 @@ import {
   BarChart3,
   Handshake
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const menuItems = [
   {
@@ -100,16 +100,16 @@ const menuItems = [
       { label: "Leave Credit", icon: Plus, path: "/LeaveCredit" }
     ]
   },
- {
-  id: "deputation-transfer",
-  label: "Deputation & Transfer",
-  icon: ArrowRightLeft,
-  type: "accordion", // change from "single" to "accordion"
-  subItems: [
-    { label: "Deputation", icon: ArrowRightLeft, path: "/DeputationTable" },
-    { label: "Transfer", icon: ArrowRightLeft, path: "/Transfertable" }
-  ]
-},
+  {
+    id: "deputation-transfer",
+    label: "Deputation & Transfer",
+    icon: ArrowRightLeft,
+    type: "accordion",
+    subItems: [
+      { label: "Deputation", icon: ArrowRightLeft, path: "/DeputationTable" },
+      { label: "Transfer", icon: ArrowRightLeft, path: "/Transfertable" }
+    ]
+  },
   {
     id: "manage-payroll",
     label: "Manage Payroll",
@@ -131,6 +131,30 @@ const Sidebar = () => {
   const [activeAccordions, setActiveAccordions] = useState(new Set());
   const [activeItem, setActiveItem] = useState("dashboard");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Update active item based on current route
+  useEffect(() => {
+    // Find the main item that matches the current path
+    const currentMainItem = menuItems.find(item => 
+      item.path === location.pathname || 
+      (item.subItems && item.subItems.some(subItem => subItem.path === location.pathname))
+    );
+
+    if (currentMainItem) {
+      setActiveItem(currentMainItem.id);
+      
+      // If it's an accordion and we're on a subItem, open the accordion
+      if (currentMainItem.type === "accordion") {
+        const isSubItemActive = currentMainItem.subItems.some(
+          subItem => subItem.path === location.pathname
+        );
+        if (isSubItemActive) {
+          setActiveAccordions(prev => new Set(prev).add(currentMainItem.id));
+        }
+      }
+    }
+  }, [location.pathname]);
 
   const toggleAccordion = (id) => {
     const newAccordions = new Set(activeAccordions);
@@ -144,14 +168,20 @@ const Sidebar = () => {
 
   const handleItemClick = (id, path) => {
     setActiveItem(id);
-    navigate(path);
+    if (path) {
+      navigate(path);
+    }
   };
 
   const renderMenuItem = (item) => {
     const isActive = activeItem === item.id;
     const isAccordionOpen = activeAccordions.has(item.id);
+    const isSubItemActive = item.subItems?.some(
+      subItem => location.pathname === subItem.path
+    );
 
     if (item.type === "single") {
+      const isCurrentPath = location.pathname === item.path;
       return (
         <div
           key={item.id}
@@ -160,15 +190,14 @@ const Sidebar = () => {
             flex items-center px-4 py-4 mx-2 rounded-lg cursor-pointer
             transition-all duration-200 ease-out group relative
             ${collapsed ? 'justify-center' : 'justify-start'}
-            ${isActive
+            ${isCurrentPath
               ? "bg-black text-white shadow-lg"
               : "text-gray-600 hover:bg-gray-100 hover:text-black"
             }
           `}
         >
           <item.icon
-            className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : "text-black"
-              }`}
+            className={`w-5 h-5 flex-shrink-0 ${isCurrentPath ? "text-white" : "text-black"}`}
           />
           {!collapsed && (
             <span className="ml-3 font-medium text-sm">{item.label}</span>
@@ -196,7 +225,7 @@ const Sidebar = () => {
             w-full flex items-center px-4 py-4 rounded-lg
             transition-all duration-200 ease-out group relative
             ${collapsed ? 'justify-center' : 'justify-between'}
-            ${isActive && isAccordionOpen
+            ${(isActive && isAccordionOpen) || isSubItemActive
               ? "bg-black text-white shadow-lg"
               : "text-gray-600 hover:bg-gray-100 hover:text-black"
             }
@@ -204,7 +233,7 @@ const Sidebar = () => {
         >
           <div className="flex items-center">
             <item.icon
-              className={`w-5 h-5 flex-shrink-0 ${isActive && isAccordionOpen
+              className={`w-5 h-5 flex-shrink-0 ${(isActive && isAccordionOpen) || isSubItemActive
                 ? "text-white"
                 : "text-black"
                 }`}
@@ -216,11 +245,9 @@ const Sidebar = () => {
           {!collapsed && (
             <div className="ml-2 flex-shrink-0">
               {isAccordionOpen ? (
-                <ChevronUp className={`w-4 h-4 ${isActive && isAccordionOpen ? 'text-white' : 'text-black'
-                  }`} />
+                <ChevronUp className={`w-4 h-4 ${(isActive && isAccordionOpen) || isSubItemActive ? 'text-white' : 'text-black'}`} />
               ) : (
-                <ChevronDown className={`w-4 h-4 ${isActive && isAccordionOpen ? 'text-white' : 'text-black'
-                  }`} />
+                <ChevronDown className={`w-4 h-4 ${(isActive && isAccordionOpen) || isSubItemActive ? 'text-white' : 'text-black'}`} />
               )}
             </div>
           )}
@@ -238,9 +265,16 @@ const Sidebar = () => {
               <div
                 key={subItem.path}
                 onClick={() => handleItemClick(item.id, subItem.path)}
-                className="flex items-center px-4 py-3 rounded-md text-sm text-gray-600 hover:text-black hover:bg-gray-200/80 transition-all duration-150 group cursor-pointer ml-4 border-l-2 border-gray-200"
+                className={`
+                  flex items-center px-4 py-3 rounded-md text-sm
+                  transition-all duration-150 group cursor-pointer ml-4 border-l-2 border-gray-200
+                  ${location.pathname === subItem.path
+                    ? "text-black bg-gray-200/80"
+                    : "text-gray-600 hover:text-black hover:bg-gray-200/80"
+                  }
+                `}
               >
-                <subItem.icon className="w-4 h-4 text-black transition-colors duration-150 flex-shrink-0" />
+                <subItem.icon className={`w-4 h-4 transition-colors duration-150 flex-shrink-0 ${location.pathname === subItem.path ? "text-black" : "text-gray-600"}`} />
                 <span className="ml-3 font-medium">{subItem.label}</span>
               </div>
             ))}

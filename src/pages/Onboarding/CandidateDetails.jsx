@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Mail, Phone, Calendar, MapPin, User, Briefcase, Droplet, GraduationCap, Home, CreditCard, Shield, Edit, Check, X } from 'lucide-react';
+import { ChevronLeft, Mail, Phone, Calendar, MapPin, User, Briefcase, Droplet, GraduationCap, Home, CreditCard, Shield, Edit, Check, X, Camera } from 'lucide-react';
 
 const CandidateDetails = () => {
   const navigate = useNavigate();
@@ -8,6 +8,8 @@ const CandidateDetails = () => {
   const [candidate, setCandidate] = useState(state?.candidate);
   const [editingSection, setEditingSection] = useState(null);
   const [editFormData, setEditFormData] = useState({});
+  const [profilePic, setProfilePic] = useState(null);
+  const fileInputRef = useRef(null);
 
   if (!candidate) {
     return (
@@ -43,7 +45,6 @@ const CandidateDetails = () => {
 
   const handleEditClick = (section) => {
     setEditingSection(section);
-    // Initialize form data with current candidate data for the section
     setEditFormData({
       ...candidate
     });
@@ -68,12 +69,50 @@ const CandidateDetails = () => {
       ...editFormData
     });
     setEditingSection(null);
-    // Here you would typically also make an API call to save the changes
-    // await updateCandidate(editFormData);
   };
 
-  const renderEditableField = (fieldName, label, value, section) => {
+  const handleProfilePicClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePic(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const getShortName = (name) => {
+    if (!name) return '';
+    const names = name.split(' ');
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
+  };
+
+  const renderEditableField = (fieldName, label, value, section, options) => {
     if (editingSection === section) {
+      if (options) {
+        return (
+          <div className="mb-2">
+            <label className="text-sm text-gray-500 block">{label}</label>
+            <select
+              name={fieldName}
+              value={editFormData[fieldName] || ''}
+              onChange={handleInputChange}
+              className="w-full p-1 border rounded"
+            >
+              <option value="">Select {label}</option>
+              {options.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          </div>
+        );
+      }
       return (
         <div className="mb-2">
           <label className="text-sm text-gray-500 block">{label}</label>
@@ -144,10 +183,33 @@ const CandidateDetails = () => {
           <div className="bg-gradient-to-r from-gray-800 to-black p-6 text-white">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex items-center mb-4 md:mb-0">
-                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg mr-4">
-                  <span className="text-2xl font-bold text-gray-800">
-                    {candidate.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </span>
+                <div className="relative group">
+                  <div 
+                    className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg mr-4 cursor-pointer"
+                    onClick={handleProfilePicClick}
+                  >
+                    {profilePic ? (
+                      <img 
+                        src={profilePic} 
+                        alt="Profile" 
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl font-bold text-gray-800">
+                        {getShortName(candidate.name)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute bottom-0 right-4 bg-blue-500 text-white p-1 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
+                    <Camera className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleProfilePicChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
                 </div>
                 <div>
                   {editingSection === 'header' ? (
@@ -176,12 +238,11 @@ const CandidateDetails = () => {
                 </div>
               </div>
               <div className="flex flex-col space-y-2">
-              <div className="flex justify-center">
-  <span className="inline-block px-3 py-1 rounded-full bg-gray-200 bg-opacity-20 text-black">
-    {candidate.status}
-  </span>
-</div>
-
+                <div className="flex justify-center">
+                  <span className="inline-block px-3 py-1 rounded-full bg-gray-200 bg-opacity-20 text-black">
+                    {candidate.status}
+                  </span>
+                </div>
                 <div className="flex items-center text-sm">
                   <Calendar className="w-4 h-4 mr-1" />
                   Applied: {formatDate(candidate.appliedDate)}
@@ -193,38 +254,21 @@ const CandidateDetails = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Personal Information */}
-     <div className="bg-gray-50 p-4 rounded-lg relative group">
-  {renderSectionActions('personal')}
-  <h2 className="text-lg font-semibold mb-3 flex items-center">
-    <User className="w-5 h-5 mr-2" />
-    Personal Information
-  </h2>
-  <div className="space-y-2">
-    {renderEditableField('firstName', 'First Name', candidate.firstName, 'personal')}
-    {renderEditableField('middleName', 'Middle Name', candidate.middleName, 'personal')}
-    {renderEditableField('lastName', 'Last Name', candidate.lastName, 'personal')}
-    
-    {renderEditableField(
-      'gender',
-      'Gender',
-      candidate.gender,
-      'personal',
-      ['Male', 'Female', 'Other']
-    )}
-    
-    {renderEditableField(
-      'bloodGrp',
-      'Blood Group',
-      candidate.bloodGrp,
-      'personal',
-      ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-    )}
-    
-    {renderEditableField('dob', 'Date of Birth', formatDate(candidate.dob), 'personal')}
-  </div>
-</div>
-
-
+              <div className="bg-gray-50 p-4 rounded-lg relative group">
+                {renderSectionActions('personal')}
+                <h2 className="text-lg font-semibold mb-3 flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Personal Information
+                </h2>
+                <div className="space-y-2">
+                  {renderEditableField('firstName', 'First Name', candidate.firstName, 'personal')}
+                  {renderEditableField('middleName', 'Middle Name', candidate.middleName, 'personal')}
+                  {renderEditableField('lastName', 'Last Name', candidate.lastName, 'personal')}
+                  {renderEditableField('gender', 'Gender', candidate.gender, 'personal', ['Male', 'Female', 'Other'])}
+                  {renderEditableField('bloodGrp', 'Blood Group', candidate.bloodGrp, 'personal', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])}
+                  {renderEditableField('dob', 'Date of Birth', formatDate(candidate.dob), 'personal')}
+                </div>
+              </div>
 
               {/* Contact Information */}
               <div className="bg-gray-50 p-4 rounded-lg relative group">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle, X, User, UserPlus, Search, FileSpreadsheet } from 'lucide-react';
+import { AlertCircle, CheckCircle, X, User, UserPlus, Search, FileSpreadsheet, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import Toast from '../../components/Toast';
 import * as XLSX from 'xlsx';
 
@@ -68,6 +68,64 @@ const DisabledEmployees = () => {
     const [resumeDate, setResumeDate] = useState('');
     const [enableLoading, setEnableLoading] = useState(false);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [employeesPerPage] = useState(10);
+
+    // Get current employees
+    const indexOfLastEmployee = currentPage * employeesPerPage;
+    const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
+    const currentEmployees = filteredEmployees.slice(indexOfFirstEmployee, indexOfLastEmployee);
+    const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
+
+    // Change page
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    const goToFirstPage = () => paginate(1);
+    const goToLastPage = () => paginate(totalPages);
+    const goToNextPage = () => currentPage < totalPages && paginate(currentPage + 1);
+    const goToPrevPage = () => currentPage > 1 && paginate(currentPage - 1);
+
+    // Generate page numbers to display
+    const getPageNumbers = () => {
+        const pageNumbers = [];
+        const maxVisiblePages = 5;
+        
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i);
+            }
+        } else {
+            const halfVisible = Math.floor(maxVisiblePages / 2);
+            let startPage = Math.max(currentPage - halfVisible, 1);
+            let endPage = Math.min(currentPage + halfVisible, totalPages);
+            
+            if (currentPage <= halfVisible) {
+                endPage = maxVisiblePages;
+            } else if (currentPage >= totalPages - halfVisible) {
+                startPage = totalPages - maxVisiblePages + 1;
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                pageNumbers.push(i);
+            }
+            
+            if (startPage > 1) {
+                if (startPage > 2) {
+                    pageNumbers.unshift('...');
+                }
+                pageNumbers.unshift(1);
+            }
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    pageNumbers.push('...');
+                }
+                pageNumbers.push(totalPages);
+            }
+        }
+        
+        return pageNumbers;
+    };
+
     const showToast = (message, type = 'success') => {
         setToast({ message, type, isVisible: true });
         setTimeout(() => setToast(prev => ({ ...prev, isVisible: false })), 3000);
@@ -75,6 +133,7 @@ const DisabledEmployees = () => {
 
     const handleSearch = (value) => {
         setSearchText(value);
+        setCurrentPage(1); // Reset to first page when searching
         if (!value) {
             setFilteredEmployees(employees);
         } else {
@@ -247,11 +306,11 @@ const DisabledEmployees = () => {
                             <TableSkeleton />
                         ) : (
                             <tbody className="bg-white divide-y divide-gray-50">
-                                {filteredEmployees.map((employee, index) => (
+                                {currentEmployees.map((employee, index) => (
                                     <tr key={employee.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
                                         <td className="px-3 py-2 whitespace-nowrap text-left">
                                             <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                                {index + 1}
+                                                {indexOfFirstEmployee + index + 1}
                                             </div>
                                         </td>
                                         <td className="px-3 py-2 whitespace-nowrap text-left">
@@ -307,6 +366,66 @@ const DisabledEmployees = () => {
                             </tbody>
                         )}
                     </table>
+
+                    {/* Pagination Controls */}
+                    {filteredEmployees.length > employeesPerPage && (
+                        <div className="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white">
+                            <div className="text-sm text-gray-700">
+                                Showing <span className="font-medium">{indexOfFirstEmployee + 1}</span> to{' '}
+                                <span className="font-medium">
+                                    {Math.min(indexOfLastEmployee, filteredEmployees.length)}
+                                </span>{' '}
+                                of <span className="font-medium">{filteredEmployees.length}</span> results
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={goToFirstPage}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronsLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={goToPrevPage}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+
+                                {getPageNumbers().map((number, index) => (
+                                    number === '...' ? (
+                                        <span key={`ellipsis-${index}`} className="px-3 py-1">
+                                            {number}
+                                        </span>
+                                    ) : (
+                                        <button
+                                            key={number}
+                                            onClick={() => paginate(number)}
+                                            className={`w-10 h-10 flex items-center justify-center rounded-lg border ${currentPage === number ? 'bg-black text-white border-black' : 'border-gray-200 hover:bg-gray-100'}`}
+                                        >
+                                            {number}
+                                        </button>
+                                    )
+                                ))}
+
+                                <button
+                                    onClick={goToNextPage}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={goToLastPage}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <ChevronsRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
