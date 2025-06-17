@@ -197,9 +197,7 @@ const apiService = {
             ...options,
         };
 
-        console.group(`🔄 API Request: ${options.method || 'GET'} ${endpoint}`);
-        console.log('📤 Request URL:', url);
-        console.log('📤 Request Config:', config);
+      
 
         if (config.body) {
             console.log('📤 Request Body:', JSON.parse(config.body));
@@ -214,7 +212,7 @@ const apiService = {
 
             if (!response.ok) {
                 console.error('❌ API Error:', {
-                    status: response.status,
+                    status: response.status, 
                     statusText: response.statusText,
                     message: data.message,
                     data: data

@@ -432,10 +432,10 @@ const AddCandidate = () => {
                     {id: 'emergency', icon: <Heart className="w-4 h-4" />, label: 'Emergency Contact'},
                     {id: 'education', icon: <BookOpen className="w-4 h-4" />, label: 'Education'},
                     {id: 'experience', icon: <Briefcase className="w-4 h-4" />, label: 'Experience'},
-                    {id: 'payroll', icon: <Banknote className="w-4 h-4" />, label: 'Payroll Details'},
+                    // {id: 'payroll', icon: <Banknote className="w-4 h-4" />, label: 'Payroll Details'},
                     {id: 'documents', icon: <FileText className="w-4 h-4" />, label: 'Documents'},
                     {id: 'medical', icon: <Heart className="w-4 h-4" />, label: 'Medical Information'}
-                  ].map(section => (
+                  ].map(section => ( 
                     <button
                       key={section.id}
                       type="button"

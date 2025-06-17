@@ -15,9 +15,11 @@ const HolidayCalendar = () => {
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
 
   const holidayTypes = ['All', 'National', 'Festival', 'Religious', 'Observance'];
+  const API_BASE_URL = 'http://localhost:5000/api/date';
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, isVisible: true });
+    setTimeout(hideToast, 5000);
   };
 
   const hideToast = () => {
@@ -31,13 +33,31 @@ const HolidayCalendar = () => {
   const fetchHolidays = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/date/all');
-      console.log('API response:', response.data);
-      const valid = response.data.dates.filter(d => d.name && d.date && d.type);
-      setHolidays(valid);
+      const response = await axios.get(`${API_BASE_URL}/all`);
+      console.log('API Response Data:', response.data);
+      
+      const holidaysData = response.data.dates || response.data;
+      
+      if (!Array.isArray(holidaysData)) {
+        throw new Error('Invalid data format received from API');
+      }
+      
+      const validHolidays = holidaysData.filter(d => 
+        d.name && d.date && d.type && (d._id || d.id)
+      ).map(holiday => ({
+        ...holiday,
+        id: holiday._id || holiday.id // Normalize to use id consistently
+      }));
+      
+      setHolidays(validHolidays);
     } catch (error) {
-      console.error('API error:', error);
-      showToast('Failed to fetch holidays. Please check your connection and try again.', 'error');
+      console.error('Failed to fetch holidays:', error);
+      showToast(
+        error.response?.data?.message || 
+        error.message || 
+        'Failed to fetch holidays. Please try again later.',
+        'error'
+      );
       setHolidays([]);
     } finally {
       setLoading(false);
@@ -60,7 +80,6 @@ const HolidayCalendar = () => {
   };
 
   const handleSubmit = async () => {
-    // Validation
     if (!currentHoliday?.name?.trim()) {
       showToast('Holiday name is required', 'error');
       return;
@@ -79,7 +98,6 @@ const HolidayCalendar = () => {
     setSubmitLoading(true);
     
     try {
-      // Prepare the data - ensure all required fields are present
       const holidayData = {
         name: currentHoliday.name.trim(),
         date: currentHoliday.date,
@@ -87,58 +105,38 @@ const HolidayCalendar = () => {
         day: currentHoliday.day || dayjs(currentHoliday.date).format('dddd')
       };
 
-      // Debug logging
-      console.log('Submitting holiday data:', holidayData);
-      console.log('Is update?', !!currentHoliday._id);
-
       let response;
-      if (currentHoliday._id) {
-        // Update existing holiday - include the ID in the data
-        const updateData = { ...holidayData, _id: currentHoliday._id };
-        console.log('Updating with URL:', `http://localhost:5000/api/date/${currentHoliday._id}`);
-        response = await axios.put(`http://localhost:5000/api/date/${currentHoliday._id}`, updateData);
+      if (currentHoliday.id) {
+        response = await axios.put(
+          `${API_BASE_URL}/${currentHoliday.id}`,
+          holidayData
+        );
         showToast('Holiday updated successfully');
       } else {
-        // Add new holiday
-        console.log('Creating with URL:', 'http://localhost:5000/api/date/create');
-        response = await axios.post('http://localhost:5000/api/date/create', holidayData);
+        response = await axios.post(
+          `${API_BASE_URL}/create`,
+          holidayData
+        );
         showToast('Holiday added successfully');
       }
 
-      console.log('Success response:', response.data);
-      
-      // Refresh the holidays list and close modal
       await fetchHolidays();
       setIsModalVisible(false);
       setCurrentHoliday(null);
       
     } catch (error) {
       console.error('Error saving holiday:', error);
+      let errorMessage = 'Failed to save holiday. Please try again.';
       
-      // Detailed error logging
       if (error.response) {
-        console.error('Error response data:', error.response.data);
-        console.error('Error response status:', error.response.status);
-        console.error('Error response headers:', error.response.headers);
-        
-        // Extract error message
-        let errorMessage = 'Failed to save holiday. Please try again.';
-        if (error.response.data?.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response.data?.error) {
-          errorMessage = error.response.data.error;
-        } else if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        }
-        
-        showToast(errorMessage, 'error');
+        errorMessage = error.response.data?.message || 
+                      error.response.data?.error || 
+                      JSON.stringify(error.response.data);
       } else if (error.request) {
-        console.error('Error request:', error.request);
-        showToast('Network error - please check your connection', 'error');
-      } else {
-        console.error('Error message:', error.message);
-        showToast('An unexpected error occurred', 'error');
+        errorMessage = 'No response from server. Check your connection.';
       }
+      
+      showToast(errorMessage, 'error');
     } finally {
       setSubmitLoading(false);
     }
@@ -150,12 +148,16 @@ const HolidayCalendar = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/date/${id}`);
+      await axios.delete(`${API_BASE_URL}/${id}`);
       showToast('Holiday deleted successfully');
       await fetchHolidays();
     } catch (error) {
       console.error('Error deleting holiday:', error);
-      showToast('Failed to delete holiday. Please try again.', 'error');
+      showToast(
+        error.response?.data?.message || 
+        'Failed to delete holiday. Please try again.',
+        'error'
+      );
     }
   };
 
@@ -268,7 +270,7 @@ const HolidayCalendar = () => {
         ) : filteredHolidays.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredHolidays.map(holiday => (
-              <div key={holiday._id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300">
+              <div key={holiday.id} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300">
                 <div className="p-6">
                   <div className="flex items-start space-x-4">
                     <div className="flex flex-col items-center justify-center bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-3 min-w-[64px]">
@@ -279,7 +281,7 @@ const HolidayCalendar = () => {
                         {dayjs(holiday.date).format('D')}
                       </span>
                       <span className="text-xs font-medium text-gray-500">
-                        {holiday.day.substring(0, 3)}
+                        {holiday.day?.substring(0, 3) || dayjs(holiday.date).format('ddd')}
                       </span>
                     </div>
                     <div className="flex-1">
@@ -300,7 +302,7 @@ const HolidayCalendar = () => {
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => deleteHoliday(holiday._id)}
+                    onClick={() => deleteHoliday(holiday.id)}
                     className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -347,7 +349,7 @@ const HolidayCalendar = () => {
               <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold bg-black bg-clip-text text-transparent">
-                    {currentHoliday?._id ? 'Edit Holiday' : 'Add Holiday'}
+                    {currentHoliday?.id ? 'Edit Holiday' : 'Add Holiday'}
                   </h3>
                   <button
                     onClick={handleCancel}
@@ -418,11 +420,11 @@ const HolidayCalendar = () => {
                   {submitLoading ? (
                     <>
                       <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
-                      {currentHoliday?._id ? 'Updating...' : 'Adding...'}
+                      {currentHoliday?.id ? 'Updating...' : 'Adding...'}
                     </>
                   ) : (
                     <>
-                      {currentHoliday?._id ? 'Update Holiday' : 'Add Holiday'}
+                      {currentHoliday?.id ? 'Update Holiday' : 'Add Holiday'}
                     </>
                   )}
                 </button>

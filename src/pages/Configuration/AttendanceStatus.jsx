@@ -100,13 +100,15 @@ const TextArea = ({ label, name, value, onChange, placeholder, error, className 
   );
 };
 
-// API Service
+// API Service with improved error handling
 const apiService = {
-  baseURL: 'http://localhost:5000/api/aStatus',
-
+  baseURL: 'http://localhost:5000/api', // Base API URL
+  
   async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    
     try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, {
+      const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
@@ -114,31 +116,32 @@ const apiService = {
         ...options,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error(`API request to ${url} failed:`, error);
       throw error;
     }
   },
 
   async getAllStatuses() {
-    return this.request('/all');
+    return this.request('/aStatus/all'); // Updated endpoint
   },
 
   async createStatus(statusData) {
-    return this.request('/create', {
+    return this.request('/aStatus/create', {
       method: 'POST',
       body: JSON.stringify(statusData),
     });
   },
 
   async updateStatus(id, statusData) {
-    return this.request(`/${id}`, {
+    return this.request(`/aStatus/update/${id}`, {
       method: 'PUT',
       body: JSON.stringify(statusData),
     });
@@ -177,10 +180,14 @@ const StatusManagement = () => {
     setLoading(true);
     try {
       const response = await apiService.getAllStatuses();
-      const statusesData = response.data || [];
+      // Handle different response structures
+      const statusesData = Array.isArray(response) ? response : 
+                         response.data ? response.data : 
+                         response.result ? response.result : [];
       setStatuses(statusesData);
     } catch (error) {
-      showToast('Failed to fetch statuses. Please check your connection and try again.', 'error');
+      console.error('Fetch error:', error);
+      showToast(`Failed to fetch statuses: ${error.message}`, 'error');
       setStatuses([]);
     } finally {
       setLoading(false);
@@ -203,10 +210,16 @@ const StatusManagement = () => {
     const errors = {};
     if (!formData.statusName.trim()) {
       errors.statusName = 'Status name is required';
+    } else if (formData.statusName.trim().length > 50) {
+      errors.statusName = 'Status name must be less than 50 characters';
     }
+    
     if (!formData.remarks.trim()) {
       errors.remarks = 'Remarks are required';
+    } else if (formData.remarks.trim().length > 500) {
+      errors.remarks = 'Remarks must be less than 500 characters';
     }
+    
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -236,6 +249,7 @@ const StatusManagement = () => {
       resetForm();
       await fetchStatuses();
     } catch (error) {
+      console.error('Submit error:', error);
       showToast(error.message || 'Failed to save status. Please try again.', 'error');
     } finally {
       setSubmitLoading(false);
@@ -266,7 +280,7 @@ const StatusManagement = () => {
 
   const getStatusColor = (statusName) => {
     const name = statusName.toLowerCase();
-    if (name.includes('present') || name.includes('active')) return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border-green-300';
+    if (name.includes('resent') || name.includes('active')) return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border-green-300';
     if (name.includes('absent') || name.includes('leave')) return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-red-300';
     if (name.includes('late') || name.includes('delay')) return 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border-yellow-300';
     if (name.includes('holiday') || name.includes('weekend')) return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-blue-300';
@@ -423,6 +437,7 @@ const StatusManagement = () => {
                 onChange={handleInputChange}
                 placeholder="Enter status name (e.g., Present, Absent, Leave)"
                 error={validationErrors.statusName}
+                maxLength={50}
               />
 
               <TextArea

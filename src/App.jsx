@@ -33,6 +33,8 @@ import CandidateDetails from "./pages/Onboarding/CandidateDetails";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgetPassword";
 import EmployeeDetailssection from "./pages/Onboarding/EmployeeDetailSection";
+import Recruitment from "./pages/Recruitment";
+import ManagePayroll from "./pages/Manage_Payroll/Managepayroll";
 
 const isAuthenticated = () => {
   // Implement your authentication check logic here
@@ -87,6 +89,8 @@ function App() {
                   <Route path="/Transfertable" element={<Transfertable />} />
                   <Route path="/CandidateDetails" element={<CandidateDetails />} />
                   <Route path="/EmployeeDetailssection" element={<EmployeeDetailssection />} />
+                  <Route path="/Recruitment" element={<Recruitment />} />
+                  <Route path="/ManagePayroll" element={<ManagePayroll />} />
                   {/* Add a catch-all route for protected paths */}
                   {/* <Route path="*" element={<Navigate to="/Dashboard" replace />} /> */}
                 </Routes>

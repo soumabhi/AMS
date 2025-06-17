@@ -158,7 +158,6 @@ const Tag = ({ children, color, className = "" }) => {
 // API Service
 const apiService = {
     baseURL: 'http://localhost:5000/api/branch',
-
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const config = {
@@ -209,6 +208,8 @@ const apiService = {
     }
 };
 
+console.log(Object.keys(apiService.assignEmployees));
+
 // Branch Management Component
 const BranchManagement = () => {
     // Branch types configuration
@@ -224,21 +225,21 @@ const BranchManagement = () => {
     const [loading, setLoading] = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
-    const [formData, setFormData] = useState({
-        branchId: "",
-        branchName: "",
-        branchType: "Corporate Office",
-        location: "",
-        branchEmail: "",
-        branchPhone: "",
-        status: 1,
-        assignedAdmins: [],
-        coordinates: {
-            type: "Point",
-            coordinates: [0, 0]
-        },
-        password: "SecurePassword123!"
-    });
+ const [formData, setFormData] = useState({
+    branchId: "",
+    branchName: "",
+    branchType: "Corporate Office", // Set default value here
+    location: "",
+    branchEmail: "",
+    branchPhone: "",
+    status: 1,
+    assignedAdmins: [],
+    coordinates: {
+        type: "Point",
+        coordinates: [0, 0]
+    },
+    password: "" // Initialize as empty string
+});
     const [validationErrors, setValidationErrors] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -273,25 +274,25 @@ const BranchManagement = () => {
         }
     };
 
-    const resetForm = () => {
-        setFormData({
-            branchId: "",
-            branchName: "",
-            branchType: "Corporate Office",
-            location: "",
-            branchEmail: "",
-            branchPhone: "",
-            status: 1,
-            assignedAdmins: [],
-            coordinates: {
-                type: "Point",
-                coordinates: [0, 0]
-            },
-            password: ""
-        });
-        setValidationErrors({});
-        setEditingBranch(null);
-    };
+  const resetForm = () => {
+    setFormData({
+        branchId: "",
+        branchName: "",
+        branchType: "Corporate Office",
+        location: "",
+        branchEmail: "",
+        branchPhone: "",
+        status: 1,
+        assignedAdmins: [],
+        coordinates: {
+            type: "Point",
+            coordinates: [0, 0]
+        },
+        password: "" // Reset to empty string
+    });
+    setValidationErrors({});
+    setEditingBranch(null);
+};
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -331,81 +332,143 @@ const BranchManagement = () => {
         });
     };
 
-    const validateForm = () => {
-        const errors = {};
+const validateForm = () => {
+    const errors = {};
 
-        if (!formData.branchId.trim()) {
-            errors.branchId = 'Branch ID is required';
-        }
+    if (!formData.branchId.trim()) {
+        errors.branchId = 'Branch ID is required';
+    }
 
-        if (!formData.branchName.trim()) {
-            errors.branchName = 'Branch name is required';
-        }
+    if (!formData.branchName.trim()) {
+        errors.branchName = 'Branch name is required';
+    }
 
-        if (!formData.location.trim()) {
-            errors.location = 'Location is required';
-        }
+    if (!formData.location.trim()) {
+        errors.location = 'Location is required';
+    }
 
-        if (!formData.branchEmail) {
-            errors.branchEmail = 'Email is required';
-        } else if (!/^\S+@\S+\.\S+$/.test(formData.branchEmail)) {
-            errors.branchEmail = 'Please enter a valid email';
-        }
+    if (!formData.branchEmail) {
+        errors.branchEmail = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.branchEmail)) {
+        errors.branchEmail = 'Please enter a valid email';
+    }
 
-        if (!formData.branchPhone) {
-            errors.branchPhone = 'Phone number is required';
-        } else if (formData.branchPhone.length !== 10) {
-            errors.branchPhone = 'Phone number must be 10 digits';
-        }
+    if (!formData.branchPhone) {
+        errors.branchPhone = 'Phone number is required';
+    } else if (formData.branchPhone.length !== 10) {
+        errors.branchPhone = 'Phone number must be 10 digits';
+    }
 
-        if (!formData.password) {
-            errors.password = 'Password is required';
-        }
+    // Only require password when creating a new branch
+    if (!editingBranch && !formData.password) {
+        errors.password = 'Password is required';
+    }else if (formData.password && formData.password.length < 6) {
+        // Validate password if provided (for both create and update)
+        errors.password = 'Password must be at least 6 characters';
+    }
 
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+};
 
-    const handleSubmit = async () => {
-        if (!validateForm()) {
-            showToast('Please fix all validation errors', 'error');
-            return;
-        }
+  const handleSubmit = async () => {
+    // Validate form before submission
+    if (!validateForm()) {
+        showToast('Please fix all validation errors', 'error');
+        return;
+    }
 
-        setSubmitLoading(true);
+    setSubmitLoading(true);
 
-        try {
-            const dataToSubmit = {
-                ...formData,
-                branchPhone: parseInt(formData.branchPhone, 10)
-            };
-
-            if (editingBranch) {
-                await apiService.updateBranch(editingBranch._id, dataToSubmit);
-                showToast('Branch updated successfully');
-            } else {
-                await apiService.createBranch(dataToSubmit);
-                showToast('Branch added successfully');
+    try {
+        // Prepare the data object with proper type conversions
+        const dataToSubmit = {
+            branchId: formData.branchId.trim(),
+            branchName: formData.branchName.trim(),
+            branchType: formData.branchType,
+            location: formData.location.trim(),
+            branchEmail: formData.branchEmail.trim(),
+            branchPhone: parseInt(formData.branchPhone, 10),
+            status: formData.status,
+            assignedAdmins: formData.assignedAdmins,
+            coordinates: {
+                type: "Point",
+                coordinates: [
+                    parseFloat(formData.coordinates.coordinates[0]) || 0,
+                    parseFloat(formData.coordinates.coordinates[1]) || 0
+                ]
             }
+        };
 
-            resetForm();
-            await fetchBranches();
-            setIsModalOpen(false);
-        } catch (error) {
-            showToast(error.message || 'Failed to save branch. Please try again.', 'error');
-        } finally {
-            setSubmitLoading(false);
+        // Only include password if:
+        // 1. Creating a new branch (always include)
+        // 2. Editing and password field is not empty
+        if (!editingBranch || (editingBranch && formData.password)) {
+            dataToSubmit.password = formData.password;
         }
-    };
 
-    const handleEdit = (branch) => {
-        setEditingBranch(branch);
-        setFormData({ 
-            ...JSON.parse(JSON.stringify(branch)),
-            assignedAdmins: branch.assignedAdmins ? [...branch.assignedAdmins] : []
-        });
-        setIsModalOpen(true);
-    };
+        // Additional validation for coordinates if needed
+        if (isNaN(dataToSubmit.coordinates.coordinates[0]) || 
+            isNaN(dataToSubmit.coordinates.coordinates[1])) {
+            throw new Error('Invalid coordinates provided');
+        }
+
+        // Branch operation based on edit/create mode
+        if (editingBranch) {
+            // For updates, we might want to preserve some existing data
+            const updateData = {
+                ...dataToSubmit,
+                // Preserve the original _id and createdAt if needed
+                _id: editingBranch._id,
+                // Add any other fields you want to preserve during update
+            };
+            
+            const response = await apiService.updateBranch(editingBranch._id, updateData);
+            showToast(`Branch "${response.branch.branchName}" updated successfully`);
+        } else {
+            // For new branches, include creation timestamp
+            const createData = {
+                ...dataToSubmit,
+                createdAt: new Date().toISOString()
+            };
+            
+            const response = await apiService.createBranch(createData);
+            showToast(`Branch "${response.branch.branchName}" created successfully`);
+        }
+
+        // Reset form and refresh data
+        resetForm();
+        await fetchBranches();
+        setIsModalOpen(false);
+        
+    } catch (error) {
+        console.error('Submission error:', error);
+        
+        // Enhanced error messages
+        let errorMessage = 'Failed to save branch. Please try again.';
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.message.includes('network')) {
+            errorMessage = 'Network error. Please check your connection.';
+        } else if (error.message.includes('duplicate')) {
+            errorMessage = 'Branch ID or email already exists.';
+        }
+        
+        showToast(errorMessage, 'error');
+    } finally {
+        setSubmitLoading(false);
+    }
+};
+
+   const handleEdit = (branch) => {
+    setEditingBranch(branch);
+    setFormData({ 
+        ...JSON.parse(JSON.stringify(branch)),
+        password: "", // Clear password when editing
+        assignedAdmins: branch.assignedAdmins ? [...branch.assignedAdmins] : []
+    });
+    setIsModalOpen(true);
+};
 
     const handleAssign = (branch) => {
         setCurrentBranch(branch);
@@ -698,16 +761,16 @@ const BranchManagement = () => {
                                 />
                             </div>
 
-                            <Input
-                                label="Password *"
-                                name="password"
-                                type="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                placeholder="Enter password"
-                                error={validationErrors.password}
-                                className="bg-gray-50 border-gray-200 focus:border-gray-400"
-                            />
+                       <Input
+    label={editingBranch ? "New Password (leave blank to keep current)" : "Password *"}
+    name="password"
+    type="password"
+    value={formData.password}
+    onChange={handleInputChange}
+    placeholder={editingBranch ? "Enter new password" : "Enter password"}
+    error={validationErrors.password}
+    className="bg-gray-50 border-gray-200 focus:border-gray-400"
+/>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input

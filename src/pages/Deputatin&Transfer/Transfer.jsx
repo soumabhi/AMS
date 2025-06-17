@@ -5,110 +5,8 @@ import {
 } from 'lucide-react';
 
 const TransferTable = () => {
-  // Sample data - replace with real API data
-  const [transfers, setTransfers] = useState([
-    {
-      id: 1,
-      empId: "EMP001",
-      empName: "John Doe",
-      fromBranch: "Head Office",
-      toBranch: "Regional Office - East",
-      dateOfReporting: "2023-05-15",
-      actualDateOfReporting: "2023-05-17",
-      status: "Completed"
-    },
-    {
-      id: 2,
-      empId: "EMP002", 
-      empName: "Jane Smith",
-      fromBranch: "Regional Office - West",
-      toBranch: "Head Office",
-      dateOfReporting: "2023-06-01",
-      actualDateOfReporting: "2023-06-03",
-      status: "Completed"
-    },
-    {
-      id: 3,
-      empId: "EMP003",
-      empName: "Robert Johnson", 
-      fromBranch: "Regional Office - North",
-      toBranch: "Regional Office - South",
-      dateOfReporting: "2023-04-10",
-      actualDateOfReporting: "2023-04-11",
-      status: "Completed"
-    },
-    {
-      id: 4,
-      empId: "EMP004",
-      empName: "Emily Davis",
-      fromBranch: "Head Office",
-      toBranch: "Regional Office - West", 
-      dateOfReporting: "2023-07-01",
-      actualDateOfReporting: null,
-      status: "Pending"
-    },
-    {
-      id: 5,
-      empId: "EMP005",
-      empName: "Michael Brown",
-      fromBranch: "Regional Office - South",
-      toBranch: "Head Office",
-      dateOfReporting: "2023-03-15",
-      actualDateOfReporting: "2023-03-16",
-      status: "Completed"
-    },
-    {
-      id: 6,
-      empId: "EMP006",
-      empName: "Sarah Wilson",
-      fromBranch: "Head Office", 
-      toBranch: "Regional Office - East",
-      dateOfReporting: "2023-08-01",
-      actualDateOfReporting: "2023-08-02",
-      status: "Completed"
-    },
-    {
-      id: 7,
-      empId: "EMP007",
-      empName: "David Taylor",
-      fromBranch: "Regional Office - East",
-      toBranch: "Regional Office - North",
-      dateOfReporting: "2023-05-20",
-      actualDateOfReporting: "2023-05-21", 
-      status: "Completed"
-    },
-    {
-      id: 8,
-      empId: "EMP008",
-      empName: "Jessica Martinez",
-      fromBranch: "Regional Office - West",
-      toBranch: "Head Office",
-      dateOfReporting: "2023-09-15",
-      actualDateOfReporting: null,
-      status: "Pending"
-    },
-    {
-      id: 9,
-      empId: "EMP009", 
-      empName: "Thomas Anderson",
-      fromBranch: "Head Office",
-      toBranch: "Regional Office - South",
-      dateOfReporting: "2023-06-10",
-      actualDateOfReporting: "2023-06-11",
-      status: "Completed"
-    },
-    {
-      id: 10,
-      empId: "EMP010",
-      empName: "Lisa Jackson",
-      fromBranch: "Regional Office - North",
-      toBranch: "Regional Office - West",
-      dateOfReporting: "2023-07-05",
-      actualDateOfReporting: "2023-07-07",
-      status: "Completed"
-    }
-  ]);
-
+  // Initialize with empty array instead of mock data
+  const [transfers, setTransfers] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -122,6 +20,11 @@ const TransferTable = () => {
     dateOfReporting: "",
     actualDateOfReporting: ""
   });
+
+  // Generate unique ID for new transfers
+  const generateId = () => {
+    return Date.now(); // Using timestamp as a simple unique ID
+  };
 
   // Filter transfers based on search and status
   const filteredTransfers = useMemo(() => {
@@ -180,22 +83,24 @@ const TransferTable = () => {
 
   // Add new transfer
   const handleAddTransfer = () => {
+    if (!newTransfer.empId || !newTransfer.empName || !newTransfer.fromBranch || !newTransfer.toBranch || !newTransfer.dateOfReporting) {
+      return; // Don't add if required fields are empty
+    }
+    
     const status = newTransfer.actualDateOfReporting ? "Completed" : "Pending";
     
-    setTransfers([
-      ...transfers,
-      {
-        id: transfers.length + 1,
-        empId: newTransfer.empId,
-        empName: newTransfer.empName,
-        fromBranch: newTransfer.fromBranch,
-        toBranch: newTransfer.toBranch,
-        dateOfReporting: newTransfer.dateOfReporting,
-        actualDateOfReporting: newTransfer.actualDateOfReporting || null,
-        status: status
-      }
-    ]);
+    const transferToAdd = {
+      id: generateId(),
+      empId: newTransfer.empId,
+      empName: newTransfer.empName,
+      fromBranch: newTransfer.fromBranch,
+      toBranch: newTransfer.toBranch,
+      dateOfReporting: newTransfer.dateOfReporting,
+      actualDateOfReporting: newTransfer.actualDateOfReporting || null,
+      status: status
+    };
     
+    setTransfers([...transfers, transferToAdd]);
     setShowAddModal(false);
     setNewTransfer({
       empId: "",
@@ -250,7 +155,7 @@ const TransferTable = () => {
                 className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-xl shadow-sm hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add
+                Add Transfer
               </button>
             </div>
           </div>
@@ -295,7 +200,11 @@ const TransferTable = () => {
                             <User className="w-12 h-12 text-gray-500" />
                           </div>
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">No transfers found</h3>
-                          <p className="text-gray-500">Try adjusting your search criteria or add new transfers.</p>
+                          <p className="text-gray-500">
+                            {transfers.length === 0 
+                              ? "Add your first transfer using the 'Add Transfer' button above." 
+                              : "Try adjusting your search criteria."}
+                          </p>
                         </div>
                       </td>
                     </tr>
@@ -354,59 +263,61 @@ const TransferTable = () => {
           </div>
 
           {/* Pagination */}
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Show</span>
-              <select
-                value={pageSize}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="px-2 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-              <span className="text-sm text-gray-600">entries</span>
+          {transfers.length > 0 && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Show</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="px-2 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+                <span className="text-sm text-gray-600">entries</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="First Page"
+                >
+                  <ChevronsLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Previous Page"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {currentPage} of {paginationData.totalPages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === paginationData.totalPages}
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Next Page"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handlePageChange(paginationData.totalPages)}
+                  disabled={currentPage === paginationData.totalPages}
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Last Page"
+                >
+                  <ChevronsRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="First Page"
-              >
-                <ChevronsLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Previous Page"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-sm text-gray-600">
-                Page {currentPage} of {paginationData.totalPages}
-              </span>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === paginationData.totalPages}
-                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Next Page"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handlePageChange(paginationData.totalPages)}
-                disabled={currentPage === paginationData.totalPages}
-                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Last Page"
-              >
-                <ChevronsRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -432,31 +343,34 @@ const TransferTable = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Employee ID</label>
+                    <label className="block text-sm font-medium text-gray-700">Employee ID*</label>
                     <input
                       type="text"
                       value={newTransfer.empId}
                       onChange={(e) => setNewTransfer({...newTransfer, empId: e.target.value})}
                       placeholder="Enter Employee ID"
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Employee Name</label>
+                    <label className="block text-sm font-medium text-gray-700">Employee Name*</label>
                     <input
                       type="text"
                       value={newTransfer.empName}
                       onChange={(e) => setNewTransfer({...newTransfer, empName: e.target.value})}
                       placeholder="Enter Employee Name"
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">From Branch</label>
+                    <label className="block text-sm font-medium text-gray-700">From Branch*</label>
                     <select
                       value={newTransfer.fromBranch}
                       onChange={(e) => setNewTransfer({...newTransfer, fromBranch: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     >
                       <option value="">Select From Branch</option>
                       <option value="Head Office">Head Office</option>
@@ -467,11 +381,12 @@ const TransferTable = () => {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">To Branch</label>
+                    <label className="block text-sm font-medium text-gray-700">To Branch*</label>
                     <select
                       value={newTransfer.toBranch}
                       onChange={(e) => setNewTransfer({...newTransfer, toBranch: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     >
                       <option value="">Select To Branch</option>
                       <option value="Head Office">Head Office</option>
@@ -482,12 +397,13 @@ const TransferTable = () => {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Date of Reporting</label>
+                    <label className="block text-sm font-medium text-gray-700">Date of Reporting*</label>
                     <input
                       type="date"
                       value={newTransfer.dateOfReporting}
                       onChange={(e) => setNewTransfer({...newTransfer, dateOfReporting: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     />
                   </div>
                   <div className="space-y-2">

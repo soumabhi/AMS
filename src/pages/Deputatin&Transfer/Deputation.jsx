@@ -5,119 +5,23 @@ import {
 } from 'lucide-react';
 
 const DeputationTable = () => {
-  // Sample data - replace with real API data
-  const [deputations, setDeputations] = useState([
-    {
-      id: 1,
-      employee: { name: "John Doe", id: "EMP001" },
-      baseBranch: "Head Office",
-      deputedBranch: "Regional Office - East",
-      fromDate: "2023-05-15",
-      toDate: "2023-06-15",
-      days: 31,
-      reportingDate: "2023-05-17",
-      status: "Active"
-    },
-    {
-      id: 2,
-      employee: { name: "Jane Smith", id: "EMP002" },
-      baseBranch: "Regional Office - West",
-      deputedBranch: "Head Office",
-      fromDate: "2023-06-01",
-      toDate: "2023-08-31",
-      days: 92,
-      reportingDate: "2023-06-03",
-      status: "Active"
-    },
-    {
-      id: 3,
-      employee: { name: "Robert Johnson", id: "EMP003" },
-      baseBranch: "Regional Office - North",
-      deputedBranch: "Regional Office - South",
-      fromDate: "2023-04-10",
-      toDate: "2023-04-20",
-      days: 10,
-      reportingDate: "2023-04-11",
-      status: "Completed"
-    },
-    {
-      id: 4,
-      employee: { name: "Emily Davis", id: "EMP004" },
-      baseBranch: "Head Office",
-      deputedBranch: "Regional Office - West",
-      fromDate: "2023-07-01",
-      toDate: "2023-09-30",
-      days: 92,
-      reportingDate: "2023-07-05",
-      status: "Upcoming"
-    },
-    {
-      id: 5,
-      employee: { name: "Michael Brown", id: "EMP005" },
-      baseBranch: "Regional Office - South",
-      deputedBranch: "Head Office",
-      fromDate: "2023-03-15",
-      toDate: "2023-03-25",
-      days: 10,
-      reportingDate: "2023-03-16",
-      status: "Completed"
-    },
-    {
-      id: 6,
-      employee: { name: "Sarah Wilson", id: "EMP006" },
-      baseBranch: "Head Office",
-      deputedBranch: "Regional Office - East",
-      fromDate: "2023-08-01",
-      toDate: "2023-10-31",
-      days: 92,
-      reportingDate: "2023-08-02",
-      status: "Active"
-    },
-    {
-      id: 7,
-      employee: { name: "David Taylor", id: "EMP007" },
-      baseBranch: "Regional Office - East",
-      deputedBranch: "Regional Office - North",
-      fromDate: "2023-05-20",
-      toDate: "2023-05-30",
-      days: 10,
-      reportingDate: "2023-05-21",
-      status: "Completed"
-    },
-    {
-      id: 8,
-      employee: { name: "Jessica Martinez", id: "EMP008" },
-      baseBranch: "Regional Office - West",
-      deputedBranch: "Head Office",
-      fromDate: "2023-09-15",
-      toDate: "2023-11-15",
-      days: 62,
-      reportingDate: "2023-09-18",
-      status: "Upcoming"
-    },
-    {
-      id: 9,
-      employee: { name: "Thomas Anderson", id: "EMP009" },
-      baseBranch: "Head Office",
-      deputedBranch: "Regional Office - South",
-      fromDate: "2023-06-10",
-      toDate: "2023-06-20",
-      days: 10,
-      reportingDate: "2023-06-11",
-      status: "Completed"
-    },
-    {
-      id: 10,
-      employee: { name: "Lisa Jackson", id: "EMP010" },
-      baseBranch: "Regional Office - North",
-      deputedBranch: "Regional Office - West",
-      fromDate: "2023-07-05",
-      toDate: "2023-09-05",
-      days: 63,
-      reportingDate: "2023-07-07",
-      status: "Active"
-    }
+  // Start with empty array instead of mock data
+  const [deputations, setDeputations] = useState([]);
+  const [employees, setEmployees] = useState([
+    { id: "EMP001", name: "John Doe" },
+    { id: "EMP002", name: "Jane Smith" },
+    { id: "EMP003", name: "Robert Johnson" },
+    { id: "EMP004", name: "Emily Davis" },
+    { id: "EMP005", name: "Michael Brown" }
   ]);
+  
+  const branches = [
+    "Head Office",
+    "Regional Office - East",
+    "Regional Office - West",
+    "Regional Office - North",
+    "Regional Office - South"
+  ];
 
   const [searchText, setSearchText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -125,7 +29,7 @@ const DeputationTable = () => {
   const [pageSize, setPageSize] = useState(5);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newDeputation, setNewDeputation] = useState({
-    employee: "",
+    employeeId: "",
     baseBranch: "",
     deputedBranch: "",
     fromDate: "",
@@ -136,9 +40,12 @@ const DeputationTable = () => {
   // Filter deputations based on search and status
   const filteredDeputations = useMemo(() => {
     return deputations.filter(dep => {
+      const employee = employees.find(emp => emp.id === dep.employeeId);
+      const employeeName = employee ? employee.name : "";
+      
       const matchesSearch = 
-        dep.employee.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        dep.employee.id.toLowerCase().includes(searchText.toLowerCase()) ||
+        employeeName.toLowerCase().includes(searchText.toLowerCase()) ||
+        dep.employeeId.toLowerCase().includes(searchText.toLowerCase()) ||
         dep.baseBranch.toLowerCase().includes(searchText.toLowerCase()) ||
         dep.deputedBranch.toLowerCase().includes(searchText.toLowerCase());
       
@@ -146,7 +53,7 @@ const DeputationTable = () => {
       
       return matchesSearch && matchesStatus;
     });
-  }, [deputations, searchText, selectedStatus]);
+  }, [deputations, employees, searchText, selectedStatus]);
 
   // Pagination calculations
   const paginationData = useMemo(() => {
@@ -195,24 +102,32 @@ const DeputationTable = () => {
     const toDate = new Date(newDeputation.toDate);
     const days = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24)) + 1;
     
-    setDeputations([
-      ...deputations,
-      {
-        id: deputations.length + 1,
-        employee: { name: "New Employee", id: "EMP" + (deputations.length + 1).toString().padStart(3, '0') },
-        baseBranch: newDeputation.baseBranch,
-        deputedBranch: newDeputation.deputedBranch,
-        fromDate: newDeputation.fromDate,
-        toDate: newDeputation.toDate,
-        days: days,
-        reportingDate: newDeputation.reportingDate,
-        status: "Upcoming"
-      }
-    ]);
+    // Determine status based on dates
+    const today = new Date();
+    let status = "upcoming";
+    if (fromDate <= today && toDate >= today) {
+      status = "active";
+    } else if (toDate < today) {
+      status = "completed";
+    }
+    
+    const newEntry = {
+      id: Date.now(), // Use timestamp as unique ID
+      employeeId: newDeputation.employeeId,
+      baseBranch: newDeputation.baseBranch,
+      deputedBranch: newDeputation.deputedBranch,
+      fromDate: newDeputation.fromDate,
+      toDate: newDeputation.toDate,
+      days: days,
+      reportingDate: newDeputation.reportingDate,
+      status: status
+    };
+    
+    setDeputations([...deputations, newEntry]);
     
     setShowAddModal(false);
     setNewDeputation({
-      employee: "",
+      employeeId: "",
       baseBranch: "",
       deputedBranch: "",
       fromDate: "",
@@ -229,6 +144,12 @@ const DeputationTable = () => {
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  // Get employee name by ID
+  const getEmployeeName = (employeeId) => {
+    const employee = employees.find(emp => emp.id === employeeId);
+    return employee ? employee.name : "Unknown Employee";
   };
 
   return (
@@ -315,8 +236,8 @@ const DeputationTable = () => {
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
                           <div>
-                            <div className="font-semibold text-gray-900 text-sm">{deputation.employee.name}</div>
-                            <div className="text-xs text-gray-500">{deputation.employee.id}</div>
+                            <div className="font-semibold text-gray-900 text-sm">{getEmployeeName(deputation.employeeId)}</div>
+                            <div className="text-xs text-gray-500">{deputation.employeeId}</div>
                           </div>
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-900">
@@ -447,14 +368,17 @@ const DeputationTable = () => {
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Employee</label>
                     <select
-                      value={newDeputation.employee}
-                      onChange={(e) => setNewDeputation({...newDeputation, employee: e.target.value})}
+                      value={newDeputation.employeeId}
+                      onChange={(e) => setNewDeputation({...newDeputation, employeeId: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     >
                       <option value="">Select Employee</option>
-                      <option value="EMP001">John Doe (EMP001)</option>
-                      <option value="EMP002">Jane Smith (EMP002)</option>
-                      <option value="EMP003">Robert Johnson (EMP003)</option>
+                      {employees.map(employee => (
+                        <option key={employee.id} value={employee.id}>
+                          {employee.name} ({employee.id})
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -463,13 +387,12 @@ const DeputationTable = () => {
                       value={newDeputation.baseBranch}
                       onChange={(e) => setNewDeputation({...newDeputation, baseBranch: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     >
                       <option value="">Select Base Branch</option>
-                      <option value="Head Office">Head Office</option>
-                      <option value="Regional Office - East">Regional Office - East</option>
-                      <option value="Regional Office - West">Regional Office - West</option>
-                      <option value="Regional Office - North">Regional Office - North</option>
-                      <option value="Regional Office - South">Regional Office - South</option>
+                      {branches.map(branch => (
+                        <option key={branch} value={branch}>{branch}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -478,13 +401,12 @@ const DeputationTable = () => {
                       value={newDeputation.deputedBranch}
                       onChange={(e) => setNewDeputation({...newDeputation, deputedBranch: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     >
                       <option value="">Select Deputed Branch</option>
-                      <option value="Head Office">Head Office</option>
-                      <option value="Regional Office - East">Regional Office - East</option>
-                      <option value="Regional Office - West">Regional Office - West</option>
-                      <option value="Regional Office - North">Regional Office - North</option>
-                      <option value="Regional Office - South">Regional Office - South</option>
+                      {branches.map(branch => (
+                        <option key={branch} value={branch}>{branch}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -494,6 +416,7 @@ const DeputationTable = () => {
                       value={newDeputation.fromDate}
                       onChange={(e) => setNewDeputation({...newDeputation, fromDate: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -503,6 +426,7 @@ const DeputationTable = () => {
                       value={newDeputation.toDate}
                       onChange={(e) => setNewDeputation({...newDeputation, toDate: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -512,6 +436,7 @@ const DeputationTable = () => {
                       value={newDeputation.reportingDate}
                       onChange={(e) => setNewDeputation({...newDeputation, reportingDate: e.target.value})}
                       className="w-full px-4 py-2 text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 hover:border-gray-300 transition-all duration-200"
+                      required
                     />
                   </div>
                 </div>
@@ -529,7 +454,7 @@ const DeputationTable = () => {
                 </button>
                 <button
                   onClick={handleAddDeputation}
-                  disabled={!newDeputation.employee || !newDeputation.baseBranch || !newDeputation.deputedBranch || !newDeputation.fromDate || !newDeputation.toDate || !newDeputation.reportingDate}
+                  disabled={!newDeputation.employeeId || !newDeputation.baseBranch || !newDeputation.deputedBranch || !newDeputation.fromDate || !newDeputation.toDate || !newDeputation.reportingDate}
                   className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-xl hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   Add Deputation

@@ -55,7 +55,7 @@ const menuItems = [
     id: "recruitment",
     label: "Recruitment",
     icon: Handshake,
-    path: "/recruitment",
+    path: "/Recruitment",
     type: "single"
   },
   {
@@ -114,7 +114,7 @@ const menuItems = [
     id: "manage-payroll",
     label: "Manage Payroll",
     icon: CreditCard,
-    path: "/payroll",
+    path: "/ManagePayroll",
     type: "single"
   },
   {

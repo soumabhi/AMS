@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Users, AlertCircle, CheckCircle, X } from 'lucide-react';
 
-// Simple Toast component since it's imported but not defined
+// Toast Component
 const Toast = ({ message, type, isVisible, onClose }) => {
   if (!isVisible) return null;
   
@@ -20,6 +20,7 @@ const Toast = ({ message, type, isVisible, onClose }) => {
   );
 };
 
+// Table Skeleton Loader
 const TableSkeleton = () => {
     return (
         <tbody className="bg-white divide-y divide-gray-100">
@@ -46,6 +47,7 @@ const TableSkeleton = () => {
     );
 };
 
+// Input Component
 const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false, name }) => {
     return (
         <div className="space-y-2">
@@ -73,6 +75,7 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
     );
 };
 
+// Select Component
 const Select = ({ label, value, onChange, options, error, className = "", disabled = false, name }) => {
     return (
         <div className="space-y-2">
@@ -104,6 +107,7 @@ const Select = ({ label, value, onChange, options, error, className = "", disabl
     );
 };
 
+// Main Department Management Component
 const DepartmentManagement = () => {
     const [departments, setDepartments] = useState([]);
     const [editingDepartment, setEditingDepartment] = useState(null);
@@ -115,6 +119,14 @@ const DepartmentManagement = () => {
         status: "Active"
     });
     const [validationErrors, setValidationErrors] = useState({});
+
+    // API Configuration
+    const API_BASE_URL = 'http://localhost:5000/api/departments'; // Adjust to your actual API endpoint
+    const API_HEADERS = {
+        'Content-Type': 'application/json',
+        // Add authorization headers if needed
+        // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+    };
 
     useEffect(() => {
         fetchDepartments();
@@ -130,26 +142,30 @@ const DepartmentManagement = () => {
     const fetchDepartments = async () => {
         setLoading(true);
         try {
-            // Mock data for demonstration since API might not be available
-            // const mockDepartments = [
-            //     { departmentId: 'DEPT001', departmentName: 'Human Resources', status: 1 },
-            //     { departmentId: 'DEPT002', departmentName: 'Information Technology', status: 1 },
-            //     { departmentId: 'DEPT003', departmentName: 'Finance', status: 0 },
-            // ];
+            const response = await fetch(`${API_BASE_URL}`, {
+                headers: API_HEADERS
+            });
             
-            // Uncomment below for actual API call
-            // const response = await fetch('http://localhost:5000/api/department/all');
-            // const data = await response.json();
-            // const departmentList = data?.departments || data || [];
+            if (!response.ok) {
+                throw new Error(`Failed to fetch: ${response.status}`);
+            }
             
-            const departmentList = mockDepartments;
+            const data = await response.json();
+            
+            // Transform the API response to match our expected format
+            const departmentList = Array.isArray(data) ? data : data.departments || [];
+            
             const enrichedDepartments = departmentList.map((item, index) => ({
-                ...item,
+                departmentId: item.id || item.departmentId || `DEPT${String(index + 1).padStart(3, '0')}`,
+                departmentName: item.name || item.departmentName,
+                status: item.status || 1, // Default to active if not specified
                 serialNo: index + 1
             }));
+            
             setDepartments(enrichedDepartments);
         } catch (error) {
-            showToast('Failed to fetch departments. Please check your connection and try again.', 'error');
+            console.error('Fetch error:', error);
+            showToast('Failed to fetch departments. Please try again later.', 'error');
         } finally {
             setLoading(false);
         }
@@ -177,6 +193,8 @@ const DepartmentManagement = () => {
 
         if (!formData.departmentName.trim()) {
             errors.departmentName = 'Department name is required';
+        } else if (formData.departmentName.trim().length < 3) {
+            errors.departmentName = 'Department name must be at least 3 characters';
         }
 
         setValidationErrors(errors);
@@ -192,73 +210,46 @@ const DepartmentManagement = () => {
         setSubmitLoading(true);
 
         try {
-            const finalFormData = {
-                departmentName: formData.departmentName.trim(),
-                status: formData.status
+            const payload = {
+                name: formData.departmentName.trim(),
+                status: formData.status === 'Active' ? 1 : 0
             };
 
-            // Mock API calls for demonstration
+            let response;
+            let method;
+            let url = API_BASE_URL;
+
             if (editingDepartment) {
-                // Mock update
-                setTimeout(() => {
-                    setDepartments(prev => 
-                        prev.map(dept => 
-                            dept.departmentId === editingDepartment.departmentId 
-                                ? { ...dept, ...finalFormData, status: finalFormData.status === 'Active' ? 1 : 0 }
-                                : dept
-                        )
-                    );
-                    showToast('Department updated successfully');
-                    resetForm();
-                    setSubmitLoading(false);
-                }, 1000);
+                method = 'PUT';
+                url = `${API_BASE_URL}/${editingDepartment.departmentId}`;
             } else {
-                // Mock create
-                setTimeout(() => {
-                    const newDept = {
-                        departmentId: `DEPT${String(departments.length + 1).padStart(3, '0')}`,
-                        departmentName: finalFormData.departmentName,
-                        status: 1,
-                        serialNo: departments.length + 1
-                    };
-                    setDepartments(prev => [...prev, newDept]);
-                    showToast('Department added successfully');
-                    resetForm();
-                    setSubmitLoading(false);
-                }, 1000);
+                method = 'POST';
             }
 
-            // Uncomment below for actual API calls
-            /*
-            if (editingDepartment) {
-                const response = await fetch(`http://localhost:5000/api/department/${editingDepartment.departmentId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(finalFormData)
-                });
-                
-                if (!response.ok) throw new Error('Update failed');
-                showToast('Department updated successfully');
-            } else {
-                const response = await fetch('http://localhost:5000/api/department/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(finalFormData)
-                });
-                
-                if (!response.ok) throw new Error('Create failed');
-                showToast('Department added successfully');
+            response = await fetch(url, {
+                method,
+                headers: API_HEADERS,
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Request failed');
             }
 
+            showToast(
+                editingDepartment 
+                    ? 'Department updated successfully' 
+                    : 'Department added successfully'
+            );
+            
             resetForm();
             await fetchDepartments();
-            */
         } catch (error) {
+            console.error('Submission error:', error);
             showToast(error.message || 'Failed to save department. Please try again.', 'error');
+        } finally {
             setSubmitLoading(false);
         }
     };
@@ -267,7 +258,7 @@ const DepartmentManagement = () => {
         setEditingDepartment(department);
         setFormData({
             departmentName: department.departmentName,
-            status: department.status === 1 || department.status === "1" ? "Active" : "Inactive"
+            status: department.status === 1 ? "Active" : "Inactive"
         });
     };
 
@@ -278,10 +269,6 @@ const DepartmentManagement = () => {
         });
         setValidationErrors({});
         setEditingDepartment(null);
-    };
-
-    const handleCancel = () => {
-        resetForm();
     };
 
     const getStatusColor = (status) => {
@@ -349,14 +336,14 @@ const DepartmentManagement = () => {
                                     <TableSkeleton />
                                 ) : (
                                     <tbody className="bg-white divide-y divide-gray-50">
-                                        {departments.map((department, index) => (
+                                        {departments.map((department) => (
                                             <tr
                                                 key={department.departmentId}
                                                 className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200"
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                                        {index + 1}
+                                                        {department.serialNo}
                                                     </div>
                                                 </td>
 
@@ -374,9 +361,7 @@ const DepartmentManagement = () => {
                                                             department.status
                                                         )}`}
                                                     >
-                                                        {department.status === 1 || department.status === "1" || department.status === "Active"
-                                                            ? "Active"
-                                                            : "Inactive"}
+                                                        {department.status === 1 ? "Active" : "Inactive"}
                                                     </span>
                                                 </td>
 
@@ -427,7 +412,7 @@ const DepartmentManagement = () => {
                             </div>
                             {editingDepartment && (
                                 <button
-                                    onClick={handleCancel}
+                                    onClick={resetForm}
                                     className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                 >
                                     <X className="w-5 h-5" />
@@ -448,19 +433,17 @@ const DepartmentManagement = () => {
                                 className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
                             />
 
-                            {editingDepartment && (
-                                <Select
-                                    label="Status *"
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleInputChange}
-                                    options={[
-                                        { value: "Active", label: "Active" },
-                                        { value: "Inactive", label: "Inactive" }
-                                    ]}
-                                    className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
-                                />
-                            )}
+                            <Select
+                                label="Status *"
+                                name="status"
+                                value={formData.status}
+                                onChange={handleInputChange}
+                                options={[
+                                    { value: "Active", label: "Active" },
+                                    { value: "Inactive", label: "Inactive" }
+                                ]}
+                                className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
+                            />
 
                             <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
                                 <div className="flex items-start">
@@ -493,7 +476,7 @@ const DepartmentManagement = () => {
                         <div className="flex gap-3">
                             {editingDepartment && (
                                 <button
-                                    onClick={handleCancel}
+                                    onClick={resetForm}
                                     className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
                                 >
                                     Cancel

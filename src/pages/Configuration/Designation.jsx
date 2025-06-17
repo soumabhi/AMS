@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, AlertCircle, Edit, X, Users, Briefcase, ChevronDown, Filter } from 'lucide-react';
+import { Plus, AlertCircle, Edit, X, Briefcase, ChevronDown, Filter } from 'lucide-react';
 
 // Toast Component
 const Toast = ({ message, type, isVisible, onClose }) => {
@@ -97,9 +97,8 @@ const Select = ({ label, value, onChange, options, error, className = "", name }
                 onChange={onChange}
                 className={`w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-200 ${error ? 'border-red-400 bg-red-50/50' : 'hover:border-gray-300'} ${className}`}
             >
-                <option value="">Select an option</option>
                 {options.map((option, index) => (
-                    <option key={index} value={option}>{option}</option>
+                    <option key={index} value={option.value}>{option.label}</option>
                 ))}
             </select>
             {error && (
@@ -137,8 +136,6 @@ const apiService = {
                             designationName: 'Software Engineer', 
                             departmentName: 'IT',
                             jobBand: {
-                                level: 'Senior',
-                                grade: 'III',
                                 tier: 'B'
                             }
                         },
@@ -147,8 +144,6 @@ const apiService = {
                             designationName: 'Manager', 
                             departmentName: 'HR',
                             jobBand: {
-                                level: 'Executive',
-                                grade: 'V',
                                 tier: 'C'
                             }
                         },
@@ -157,8 +152,6 @@ const apiService = {
                             designationName: 'Analyst', 
                             departmentName: 'Finance',
                             jobBand: {
-                                level: 'Intermediate',
-                                grade: 'II',
                                 tier: 'A'
                             }
                         }
@@ -210,8 +203,6 @@ const DesignationManagement = () => {
         designationName: "",
         departmentName: "",
         jobBand: {
-            level: "",
-            grade: "",
             tier: ""
         }
     });
@@ -219,12 +210,19 @@ const DesignationManagement = () => {
     const [departmentFilter, setDepartmentFilter] = useState('all');
     const [uniqueDepartments, setUniqueDepartments] = useState([]);
     
-    // Job band options
-    const jobBandOptions = {
-        levels: ['Entry', 'Intermediate', 'Senior', 'Executive', 'Leadership'],
-        grades: ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'],
-        tiers: ['A', 'B', 'C', 'D', 'E']
-    };
+    // Band options (A-J)
+    const bandOptions = [
+        { value: 'A', label: 'Band A' },
+        { value: 'B', label: 'Band B' },
+        { value: 'C', label: 'Band C' },
+        { value: 'D', label: 'Band D' },
+        { value: 'E', label: 'Band E' },
+        { value: 'F', label: 'Band F' },
+        { value: 'G', label: 'Band G' },
+        { value: 'H', label: 'Band H' },
+        { value: 'I', label: 'Band I' },
+        { value: 'J', label: 'Band J' }
+    ];
 
     useEffect(() => {
         fetchDesignations();
@@ -300,8 +298,6 @@ const DesignationManagement = () => {
             designationName: "",
             departmentName: "",
             jobBand: {
-                level: "",
-                grade: "",
                 tier: ""
             }
         });
@@ -312,7 +308,6 @@ const DesignationManagement = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         
-        // Check if this is a jobBand field
         if (name.startsWith('jobBand.')) {
             const jobBandField = name.split('.')[1];
             setFormData(prev => ({
@@ -348,16 +343,8 @@ const DesignationManagement = () => {
             errors.departmentName = 'Department name is required';
         }
 
-        if (!formData.jobBand.level) {
-            errors['jobBand.level'] = 'Job level is required';
-        }
-
-        if (!formData.jobBand.grade) {
-            errors['jobBand.grade'] = 'Job grade is required';
-        }
-
         if (!formData.jobBand.tier) {
-            errors['jobBand.tier'] = 'Job tier is required';
+            errors['jobBand.tier'] = 'Band is required';
         }
 
         setValidationErrors(errors);
@@ -377,8 +364,6 @@ const DesignationManagement = () => {
                 designationName: formData.designationName.trim(),
                 departmentName: formData.departmentName.trim(),
                 jobBand: {
-                    level: formData.jobBand.level,
-                    grade: formData.jobBand.grade,
                     tier: formData.jobBand.tier
                 }
             };
@@ -410,8 +395,6 @@ const DesignationManagement = () => {
             designationName: designation.designationName || "",
             departmentName: designation.departmentName || "",
             jobBand: designation.jobBand || {
-                level: "",
-                grade: "",
                 tier: ""
             }
         });
@@ -494,7 +477,7 @@ const DesignationManagement = () => {
                                             Department Name
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                            Job Band
+                                            Band
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Actions
@@ -525,7 +508,7 @@ const DesignationManagement = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="text-sm font-medium text-gray-900">
-                                                        {designation.jobBand?.level} {designation.jobBand?.grade} ({designation.jobBand?.tier})
+                                                        Band {designation.jobBand?.tier}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -609,37 +592,17 @@ const DesignationManagement = () => {
                                 className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200"
                             />
 
-                            {/* Job Band Section */}
-                             <h3 className="text-lg font-semibold text-gray-800 mb-4">Job Band Details *</h3>
-                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                               
-                                <div className="grid grid-cols-3 gap-4">
-                                    <Select
-                                        label="Level"
-                                        name="jobBand.level"
-                                        value={formData.jobBand.level}
-                                        onChange={handleInputChange}
-                                        options={jobBandOptions.levels}
-                                        error={validationErrors['jobBand.level']}
-                                    />
-                                    <Select
-                                        label="Grade"
-                                        name="jobBand.grade"
-                                        value={formData.jobBand.grade}
-                                        onChange={handleInputChange}
-                                        options={jobBandOptions.grades}
-                                        error={validationErrors['jobBand.grade']}
-                                    />
-                                    <Select
-                                        label="Tier"
-                                        name="jobBand.tier"
-                                        value={formData.jobBand.tier}
-                                        onChange={handleInputChange}
-                                        options={jobBandOptions.tiers}
-                                        error={validationErrors['jobBand.tier']}
-                                    />
-                                </div>
-                            </div>
+                            {/* Band Selection Section */}
+                         
+                                <Select
+                                    label="Band *"
+                                    name="jobBand.tier"
+                                    value={formData.jobBand.tier}
+                                    onChange={handleInputChange}
+                                    options={[{ value: '', label: 'Select Band' }, ...bandOptions]}
+                                    error={validationErrors['jobBand.tier']}
+                                />
+                           
 
                             <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
                                 <div className="flex items-start">
@@ -659,7 +622,7 @@ const DesignationManagement = () => {
                                             </li>
                                             <li className="flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-                                                <span>Job band helps classify positions</span>
+                                                <span>Band helps classify positions</span>
                                             </li>
                                         </ul>
                                     </div>

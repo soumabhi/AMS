@@ -78,6 +78,10 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
   );
 };
 
+// Use consistent date handling
+const formatDate = (date) => {
+  return date ? moment(date).format("DD-MM-YYYY") : "N/A";
+};
 // Enhanced Select Component
 const Select = ({ label, value, onChange, options, error, className = "", disabled = false }) => {
   return (
@@ -583,7 +587,41 @@ const exportToExcel = () => {
 
   const validateEmployeeData = (data) => {
     const errors = [];
-    const requiredFields = ['name', 'email', 'phone', 'dateOfBirth', 'gender', 'department', 'branch', 'position'];
+   const requiredFields = [
+  "bmCode",        // Employee Code
+  "fname",         // First Name
+  "mname",         // Middle Name
+  "lname",         // Last Name
+  "gender",        // Gender
+  "currentEntity", // Current Entity (Office)
+  "designation",   // Position/Designation
+  "bloodGrp",      // Blood Group
+  "qualification", // Educational Qualification
+  "passingYear",   // Year of Passing
+  "branch",        // Branch
+  "dept",          // Department
+  "doj",           // Date of Joining
+  "dob",           // Date of Birth
+  "contactNumber", // Phone Number
+  "mailId",        // Email
+  "salary",        // Salary
+  "address1",      // Address Line 1
+  "address2",      // Address Line 2 (if applicable)
+  "block",         // Block/Locality
+  "dist",          // District
+  "zipCode",       // ZIP Code
+  "adhaarNumber",  // Aadhaar Number
+  "panNumber",     // PAN Number
+  "emergencyContact",          // Emergency Contact Number
+  "emergencyContactName",      // Emergency Contact Name
+  "emergencyContactRelationship", // Relationship with Emergency Contact
+  "bankAccountHolderName",      // Bank Account Holder Name
+  "bankName",                   // Bank Name
+  "accountNo",                  // Account Number
+  "ifscCode",                   // IFSC Code
+  "bankBranch",                 // Bank Branch
+  "modeOfPayment"               // Mode of Payment (Bank Transfer, etc.)
+];
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\d{10}$/;
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
@@ -631,7 +669,6 @@ const exportToExcel = () => {
 
   const handleConfirmUpload = async () => {
     if (!previewData) return;
-
     try {
       setUploadLoading(true);
       const response = await axios.post('http://localhost:5000/api/employees/bulk', previewData, {
