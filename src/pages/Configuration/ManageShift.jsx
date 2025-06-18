@@ -2,52 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Clock, Calendar, AlertCircle, CheckCircle, X, Users, Timer } from 'lucide-react';
 import Toast from '../../components/Toast';
 
-// Toast notification component
-// const Toast = ({ message, type, isVisible, onClose }) => {
-//     useEffect(() => {
-//         if (isVisible) {
-//             const timer = setTimeout(() => {
-//                 onClose();
-//             }, 4000);
-//             return () => clearTimeout(timer);
-//         }
-//     }, [isVisible, onClose]);
-
-//     if (!isVisible) return null;
-
-//     const bgColor = type === 'success'
-//         ? 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300'
-//         : 'bg-gradient-to-r from-gray-100 to-gray-200 border-gray-400';
-//     const textColor = type === 'success' ? 'text-gray-800' : 'text-gray-900';
-//     const IconComponent = type === 'success' ? CheckCircle : AlertCircle;
-
-//     return (
-//         <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-top-4 duration-300">
-//             <div className={`max-w-sm w-full ${bgColor} border rounded-xl shadow-lg backdrop-blur-sm p-4`}>
-//                 <div className="flex items-center">
-//                     <div className="flex-shrink-0">
-//                         <IconComponent className="h-5 w-5 text-gray-700" />
-//                     </div>
-//                     <div className="ml-3">
-//                         <p className={`text-sm font-medium ${textColor}`}>
-//                             {message}
-//                         </p>
-//                     </div>
-//                     <div className="ml-auto pl-3">
-//                         <button
-//                             onClick={onClose}
-//                             className="inline-flex rounded-lg p-1.5 text-gray-400 hover:bg-white/50 focus:outline-none transition-colors"
-//                         >
-//                             <X className="h-4 w-4" />
-//                         </button>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// Skeleton Loader Component with enhanced styling
 const TableSkeleton = () => {
     return (
         <tbody className="bg-white divide-y divide-gray-100">
@@ -77,7 +31,6 @@ const TableSkeleton = () => {
     );
 };
 
-// Enhanced Input Component
 const Input = ({ label, value, onChange, placeholder, error, type = "text", className = "", disabled = false }) => {
     return (
         <div className="space-y-2">
@@ -104,7 +57,6 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
     );
 };
 
-// Enhanced Time Input Component
 const TimeInput = ({ label, value, onChange, error, disabled = false }) => {
     const [hours, setHours] = useState('');
     const [minutes, setMinutes] = useState('');
@@ -183,7 +135,6 @@ const TimeInput = ({ label, value, onChange, error, disabled = false }) => {
     );
 };
 
-// Enhanced API Service
 const apiService = {
     baseURL: 'http://localhost:5000/api/shift',
 
@@ -196,8 +147,6 @@ const apiService = {
             },
             ...options,
         };
-
-      
 
         if (config.body) {
             console.log('📤 Request Body:', JSON.parse(config.body));
@@ -273,11 +222,11 @@ const ShiftManagement = () => {
         shiftName: "",
         shiftStart: "",
         shiftEnd: "",
-        duration: { hours: 0, minutes: 0, formatted: '' }
+        duration: { hours: 0, minutes: 0, formatted: '' },
+        isNextDay: false
     });
     const [validationErrors, setValidationErrors] = useState({});
 
-    // Fetch shifts on component mount
     useEffect(() => {
         fetchShifts();
     }, []);
@@ -340,7 +289,8 @@ const ShiftManagement = () => {
             shiftName: "",
             shiftStart: "",
             shiftEnd: "",
-            duration: { hours: 0, minutes: 0, formatted: '' }
+            duration: { hours: 0, minutes: 0, formatted: '' },
+            isNextDay: false
         });
         setValidationErrors({});
         setEditingShift(null);
@@ -398,7 +348,7 @@ const ShiftManagement = () => {
             errors.shiftEnd = 'End time is required';
         }
 
-        if (formData.shiftName.toLowerCase() !== "night" && formData.shiftStart && formData.shiftEnd) {
+        if (!formData.isNextDay && formData.shiftStart && formData.shiftEnd) {
             const [startHour, startMinute] = formData.shiftStart.split(':').map(Number);
             const [endHour, endMinute] = formData.shiftEnd.split(':').map(Number);
 
@@ -406,7 +356,7 @@ const ShiftManagement = () => {
             const endMinutes = endHour * 60 + endMinute;
 
             if (endMinutes <= startMinutes) {
-                errors.shiftEnd = 'End time must be after start time for this shift type';
+                errors.shiftEnd = 'End time must be after start time unless it spans to the next day';
             }
         }
 
@@ -430,7 +380,8 @@ const ShiftManagement = () => {
             const finalFormData = {
                 shiftName: formData.shiftName.trim(),
                 shiftStart: formData.shiftStart + ':00',
-                shiftEnd: formData.shiftEnd + ':00'
+                shiftEnd: formData.shiftEnd + ':00',
+                isNextDay: formData.isNextDay
             };
 
             console.log('📤 Final form data:', finalFormData);
@@ -451,7 +402,7 @@ const ShiftManagement = () => {
             console.error('❌ Error saving shift:', {
                 message: error.message,
                 stack: error.stack,
-                formData: finalFormData
+                formData: formData
             });
             showToast(error.message || 'Failed to save shift. Please try again.', 'error');
         } finally {
@@ -469,7 +420,8 @@ const ShiftManagement = () => {
             duration: calculateDuration(
                 shift.shiftStart ? shift.shiftStart.substring(0, 5) : '',
                 shift.shiftEnd ? shift.shiftEnd.substring(0, 5) : ''
-            )
+            ),
+            isNextDay: shift.isNextDay || false
         });
         setValidationErrors({});
     };
@@ -672,6 +624,26 @@ const ShiftManagement = () => {
                                 onChange={(time) => handleTimeChange(time, 'shiftEnd')}
                                 error={validationErrors.shiftEnd}
                             />
+
+                            <div className="space-y-2">
+                                <label className="flex items-center space-x-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.isNextDay}
+                                        onChange={(e) => setFormData({...formData, isNextDay: e.target.checked})}
+                                        className="form-checkbox h-5 w-5 text-gray-600 rounded-lg border-gray-300 focus:ring-gray-500"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        Does this shift span to the next day?
+                                    </span>
+                                </label>
+                                {validationErrors.isNextDay && (
+                                    <p className="text-sm text-gray-600 flex items-center gap-1">
+                                        <AlertCircle className="w-4 h-4" />
+                                        {validationErrors.isNextDay}
+                                    </p>
+                                )}
+                            </div>
 
                             {formData.duration.formatted && (
                                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">

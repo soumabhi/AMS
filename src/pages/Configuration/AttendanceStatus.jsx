@@ -245,6 +245,7 @@ const StatusManagement = () => {
         await apiService.createStatus(finalFormData);
         showToast('Status created successfully');
       }
+      
 
       resetForm();
       await fetchStatuses();
