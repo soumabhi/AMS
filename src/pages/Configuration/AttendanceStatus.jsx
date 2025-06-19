@@ -106,7 +106,7 @@ const apiService = {
   
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    
+    console.log('API Request URL:', url);
     try {
       const response = await fetch(url, {
         headers: {
@@ -552,4 +552,4 @@ const StatusManagement = () => {
   );
 };
 
-export default StatusManagement;
+export default StatusManagement;      

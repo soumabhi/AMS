@@ -142,6 +142,8 @@ const ActiveEmployees = () => {
   const [uploadStatus, setUploadStatus] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
 
+
+
   // Debounced search text
   const [debouncedSearchText, setDebouncedSearchText] = useState("");
 
@@ -214,7 +216,8 @@ const fetchEmployees = async (page = 1, limit = 10) => {
       `${API_BASE_URL}/employee/all?page=${page}&limit=${limit}`
     );
     if (response.data) {
-      const formattedEmployees = response.data.employees.map((emp) => ({
+     const activeEmployees = response.data.employees.filter(emp => emp.status === "active");
+      const formattedEmployees = activeEmployees.map((emp) => ({
         _id: emp._id,
         name: `${emp.userName?.salutation || ''} ${emp.userName?.firstName || ''} ${emp.userName?.middleName || ''} ${emp.userName?.lastName || ''}`.trim(),
         firstName: emp.userName?.firstName,
@@ -223,7 +226,7 @@ const fetchEmployees = async (page = 1, limit = 10) => {
         salutation: emp.userName?.salutation,
         emp_id: emp.userId,
         email: emp.userEmail,
-        phone: emp.`  `?.toString() || "N/A",
+        phone: emp.contactNo?.toString() || "N/A",
         dob: emp.dob ? moment(emp.dob).format("YYYY-MM-DD") : "N/A",
         age: emp.dob ? Math.floor((new Date() - new Date(emp.dob)) / (1000 * 60 * 60 * 24 * 365.25)) : "N/A",
         gender: emp.gender === 0 ? "Male" : emp.gender === 1 ? "Female" : "Other",
@@ -246,6 +249,7 @@ const fetchEmployees = async (page = 1, limit = 10) => {
         education: emp.education || [],
         payroll: emp.payroll || []
       }));
+      console.log("DATAS : ", activeEmployees);
       
       setEmployees(formattedEmployees);
       setTotalEmployees(response.data.totalEmployees);
@@ -298,34 +302,42 @@ const fetchEmployees = async (page = 1, limit = 10) => {
   };
 
   // Disable employee
-  const disableEmployee = async (id) => {
-    setLoading(true);
-    try {
-      await axios.put(`${API_BASE_URL}/employee/update/${id}`, { status: 0 });
-      showToast("Employee disabled successfully");
-      fetchEmployees(currentPage, pageSize);
-    } catch (error) {
-      console.error("Error disabling employee:", error);
-      showToast(
-        "Failed to disable employee: " + (error.response?.data?.message || "Unknown error"),
-        "error"
-      );
-      setLoading(false);
-    }
-  };
+const disableEmployee = async (id) => {
+  setLoading(true);
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/employee/${id}`,
+      { status: 0 } // Set status to 0 (inactive)
+    );
+    
+    showToast("Employee disabled successfully");
+    // Refresh the employee list
+    fetchEmployees(currentPage, pageSize);
+  } catch (error) {
+    console.error("Error disabling employee:", error);
+    showToast(
+      "Failed to disable employee: " + 
+      (error.response?.data?.message || "Unknown error"),
+      "error"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
-  // Export to Excel
-  const exportToExcel = () => {
-    try {
-      const exportData = employees.map(emp => ({
-        'Employee ID': emp.emp_id,
-        'Name': emp.name,
-        'Gender': emp.gender,
-        'Department': emp.department,
+// Export to Excel
+const exportToExcel = () => {
+  try {
+    const exportData = employees.map(emp => ({
+      'Employee ID': emp.emp_id,
+      'Name': emp.name,
+      'Gender': emp.gender,
+      'Department': emp.department,
         'Designation': emp.position,
         'Branch': emp.branch,
         'Email': emp.email,
-        'Phone': emp.phone,
+        'Phone': emp.contactNo
+      ,
         'DOB': emp.dob,
         'Joining Date': emp.joiningDate,
         'Status': emp.status
@@ -747,92 +759,87 @@ const fetchEmployees = async (page = 1, limit = 10) => {
 
             {/* Table */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">#</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Employee</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Designation</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Branch</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Contact</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                
-                {loading ? (
-                  <TableSkeleton />
-                ) : paginationData.paginatedEmployees.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-16 text-center">
-                      <div className="text-center">
-                        <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
-                          <User className="w-12 h-12 text-gray-500" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No employees found</h3>
-                        <p className="text-gray-500">Try adjusting your search criteria or add new employees.</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {paginationData.paginatedEmployees.map((employee, index) => (
-                      <tr key={employee._id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                        <td className="px-4 py-2 whitespace-nowrap">
-                          <div className="w-6 h-6 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs font-bold">
-                            {index + 1}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap">
-                          <div>
-                            <div className="font-semibold text-gray-900 text-sm">{employee.name}</div>
-                            <div className="text-xs text-gray-500 flex items-center gap-2">
-                              <span>ID: {employee.emp_id}</span>
-                              <span className="bg-gray-100 px-1.5 py-0.5 rounded-full text-xs">
-                                {employee.gender} / {employee.age}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {employee.department}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {employee.position}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {employee.branch}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                          <div className="flex flex-col">
-                            <span>{employee.phone}</span>
-                            <span className="text-xs text-gray-500">{employee.email}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleViewEmployee(employee)}
-                              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="View Details"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDisableClick(employee)}
-                              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Disable Employee"
-                            >
-                              <Ban className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                )}
-              </table>
+  <table className="min-w-full divide-y divide-gray-100">
+    <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+      <tr>
+        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">#</th>
+        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Employee</th>
+        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Department</th>
+        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Designation</th>
+        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Branch</th>
+        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Contact</th>
+        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
+      </tr>
+    </thead>
+    
+    {loading ? (
+      <TableSkeleton />
+    ) : (
+     <tbody className="bg-white divide-y divide-gray-100">
+  {paginationData.paginatedEmployees.length === 0 ? (
+    <tr>
+      <td colSpan={7} className="px-6 py-16 text-center">
+        <div className="text-center">
+          <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+            <User className="w-12 h-12 text-gray-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No employees found</h3>
+          <p className="text-gray-500">Try adjusting your search criteria or add new employees.</p>
+        </div>
+      </td>
+    </tr>
+  ) : (
+    paginationData.paginatedEmployees.map((employee, index) => (
+      <tr key={employee._id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {(currentPage - 1) * pageSize + index + 1}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-r from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-blue-600" />
             </div>
+            <div className="ml-4">
+              <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+              <div className="text-sm text-gray-500">{employee.email}</div>
+            </div>
+          </div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-sm text-gray-900">{employee.department}</div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-sm text-gray-900">{employee.position}</div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-sm text-gray-900">{employee.branch}</div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="text-sm text-gray-900">{employee.phone}</div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+          <button
+            onClick={() => handleViewEmployee(employee)}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="View"
+          >
+            <Eye className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => handleDisableClick(employee)}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Disable"
+          >
+            <Ban className="w-5 h-5" />
+          </button>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+    )}
+  </table>
+</div>
 
             {/* Pagination */}
             <div className="mt-6 flex items-center justify-between">

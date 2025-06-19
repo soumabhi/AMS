@@ -371,12 +371,12 @@ const validateForm = () => {
     return Object.keys(errors).length === 0;
 };
 
-  const handleSubmit = async () => {
-    // Validate form before submission
-    if (!validateForm()) {
-        showToast('Please fix all validation errors', 'error');
-        return;
-    }
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) {
+    showToast('Please fix all validation errors', 'error');
+    return;
+  }
 
     setSubmitLoading(true);
 
@@ -412,7 +412,16 @@ const validateForm = () => {
             isNaN(dataToSubmit.coordinates.coordinates[1])) {
             throw new Error('Invalid coordinates provided');
         }
-
+console.log('Submitting data:', dataToSubmit);
+try {
+    const response = await apiService.createBranch(createData);
+    console.log('API Response:', response);
+    // ... rest of your code
+} catch (error) {
+    console.error('Detailed error:', error);
+    console.error('Error response:', error.response);
+    // ... rest of your error handling
+}
         // Branch operation based on edit/create mode
         if (editingBranch) {
             // For updates, we might want to preserve some existing data
@@ -514,167 +523,170 @@ const validateForm = () => {
                 onClose={() => setToast({ ...toast, isVisible: false })}
             />
 
-            <div className="flex flex-col h-screen">
-                {/* Main Content Area */}
-                <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Enhanced Header */}
-                    <div className="p-4 sm:p-6 bg-gradient-to-r from-white to-gray-50 border-b border-gray-200">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                            <div className="mb-4 sm:mb-0">
-                                <h1 className="text-2xl sm:text-3xl font-bold bg-black bg-clip-text text-transparent">
-                                    Branch Management
-                                </h1>
-                                <p className="text-gray-600 flex items-center gap-2 text-sm">
-                                    <Users className="w-4 h-4" />
-                                    Manage your branches and assignments
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                    <p className="text-xs sm:text-sm text-gray-500">Total Branches</p>
-                                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{branches.length}</p>
-                                </div>
-                            </div>
+           <div className="flex flex-col h-screen">
+  {/* Main Content Area */}
+  <div className="flex-1 flex flex-col overflow-hidden">
+    {/* Fixed Header */}
+    <div className="p-4 sm:p-6 bg-gradient-to-r from-GRAY-50 to-gray-50 border-b border-gray-200 sticky top-0 z-10">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+        <div className="mb-4 sm:mb-0">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-black bg-clip-text text-transparent">
+            Branch Management
+          </h1>
+          <p className="text-gray-600 flex items-center gap-2 text-sm">
+            <Users className="w-4 h-4" />
+            Manage your branches and assignments
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-xs sm:text-sm text-gray-500">Total Branches</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-800">{branches.length}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Scrollable Content */}
+    <div className="flex-1 overflow-auto">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Branch List</h2>
+          <button
+            onClick={() => {
+              resetForm();
+              setIsModalOpen(true);
+            }}
+            className="inline-flex items-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-lg hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow hover:shadow-md"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add Branch
+          </button>
+        </div>
+
+        {/* Enhanced Table */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow border border-gray-200 overflow-auto">
+          <div className="min-w-full">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    #
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Branch ID
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Branch Name
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Location
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Branch Admin
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              {loading ? (
+                <TableSkeleton />
+              ) : (
+                <tbody className="bg-white divide-y divide-gray-50">
+                  {branches.map((branch, index) => (
+                    <tr key={branch._id || index} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold">
+                          {index + 1}
                         </div>
-                    </div>
-
-                    <div className="flex-1 p-4 sm:p-6 overflow-auto">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Branch List</h2>
-                            <button
-                                onClick={() => {
-                                    resetForm();
-                                    setIsModalOpen(true);
-                                }}
-                                className="inline-flex items-center px-3 py-2 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-lg hover:from-gray-900 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow hover:shadow-md"
-                            >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Add Branch
-                            </button>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm font-medium text-gray-900">
+                          {branch.branchId}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm font-medium text-gray-900">
+                          {branch.branchName}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm font-medium text-gray-900">
+                          {branch.branchType}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm font-medium text-gray-900">
+                          {branch.location}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex flex-wrap gap-1">
+                          {branch.assignedAdmins?.length > 0 ? (
+                            branch.assignedAdmins.map((admin, idx) => (
+                              <Tag key={idx} color="blue">
+                                {admin.name} ({admin.designation})
+                              </Tag>
+                            ))
+                          ) : (
+                            <Tag color="orange">Not Assigned</Tag>
+                          )}
                         </div>
-
-                        {/* Enhanced Table */}
-                        <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow border border-gray-200 overflow-auto">
-                            <div className="min-w-full">
-                                <table className="min-w-full divide-y divide-gray-100">
-                                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                #
-                                            </th>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                Branch ID
-                                            </th>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                Branch Name
-                                            </th>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                Type
-                                            </th>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                Location
-                                            </th>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                Branch Admin
-                                            </th>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-
-                                    {loading ? (
-                                        <TableSkeleton />
-                                    ) : (
-                                        <tbody className="bg-white divide-y divide-gray-50">
-                                            {branches.map((branch, index) => (
-                                                <tr key={branch._id || index} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold">
-                                                            {index + 1}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                                            {branch.branchId}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                                            {branch.branchName}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                                            {branch.branchType}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <span className="text-xs sm:text-sm font-medium text-gray-900">
-                                                            {branch.location}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {branch.assignedAdmins?.length > 0 ? (
-                                                                branch.assignedAdmins.map((admin, idx) => (
-                                                                    <Tag key={idx} color="blue">
-                                                                        {admin.name} ({admin.designation})
-                                                                    </Tag>
-                                                                ))
-                                                            ) : (
-                                                                <Tag color="orange">Not Assigned</Tag>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <Tag color={branch.status === 1 ? 'green' : 'red'}>
-                                                            {branch.status === 1 ? 'Active' : 'Inactive'}
-                                                        </Tag>
-                                                    </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="flex gap-1">
-                                                            <button
-                                                                onClick={() => handleEdit(branch)}
-                                                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-md hover:from-gray-200 hover:to-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-sm"
-                                                            >
-                                                                <Edit className="w-3 h-3 mr-1" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleAssign(branch)}
-                                                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 border border-gray-700 rounded-md hover:from-gray-700 hover:to-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-sm"
-                                                            >
-                                                                <UserPlus className="w-3 h-3 mr-1" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-
-                                            {!loading && branches.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="8" className="px-4 py-8 text-center">
-                                                        <div className="text-center">
-                                                            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-2">
-                                                                <Users className="w-8 h-8 text-gray-500" />
-                                                            </div>
-                                                            <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1">No branches available</h3>
-                                                            <p className="text-xs sm:text-sm text-gray-500">Get started by creating your first branch.</p>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    )}
-                                </table>
-                            </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <Tag color={branch.status === 1 ? 'green' : 'red'}>
+                          {branch.status === 1 ? 'Active' : 'Inactive'}
+                        </Tag>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleEdit(branch)}
+                            className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 border border-gray-300 rounded-md hover:from-gray-200 hover:to-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-sm"
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                          </button>
+                          <button
+                            onClick={() => handleAssign(branch)}
+                            className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 border border-gray-700 rounded-md hover:from-gray-700 hover:to-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-sm"
+                          >
+                            <UserPlus className="w-3 h-3 mr-1" />
+                          </button>
                         </div>
-                    </div>
-                </div>
-            </div>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {!loading && branches.length === 0 && (
+                    <tr>
+                      <td colSpan="8" className="px-4 py-8 text-center">
+                        <div className="text-center">
+                          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-2">
+                            <Users className="w-8 h-8 text-gray-500" />
+                          </div>
+                          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1">No branches available</h3>
+                          <p className="text-xs sm:text-sm text-gray-500">Get started by creating your first branch.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              )}
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
             {/* Branch Form Modal */}
             {isModalOpen && (
