@@ -223,7 +223,7 @@ const fetchEmployees = async (page = 1, limit = 10) => {
         salutation: emp.userName?.salutation,
         emp_id: emp.userId,
         email: emp.userEmail,
-        phone: emp.contactNo?.toString() || "N/A",
+        phone: emp.`  `?.toString() || "N/A",
         dob: emp.dob ? moment(emp.dob).format("YYYY-MM-DD") : "N/A",
         age: emp.dob ? Math.floor((new Date() - new Date(emp.dob)) / (1000 * 60 * 60 * 24 * 365.25)) : "N/A",
         gender: emp.gender === 0 ? "Male" : emp.gender === 1 ? "Female" : "Other",
