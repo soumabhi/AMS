@@ -207,8 +207,6 @@ const apiService = {
         });
     }
 };
-
-console.log(Object.keys(apiService.assignEmployees));
 console.log(Object.keys(apiService.getAllBranches));
 console.log(Object.keys(apiService.assignEmployees)); 
 
