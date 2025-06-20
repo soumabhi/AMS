@@ -111,56 +111,30 @@ const Select = ({ label, value, onChange, options, error, className = "", name }
     );
 };
 
-// Mock API service
+// API service with actual fetch calls
 const apiService = {
     baseURL: 'http://localhost:5000/api/designation',
 
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const config = {
+            method: options.method || 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers,
             },
-            ...options,
+            body: options.body,
         };
 
         try {
-            // For demonstration, return mock data
-            if (endpoint === '/all') {
-                return {
-                    success: true,
-                    data: [
-                        { 
-                            _id: '1', 
-                            designationName: 'Software Engineer', 
-                            departmentName: 'IT',
-                            jobBand: {
-                                tier: 'B'
-                            }
-                        },
-                        { 
-                            _id: '2', 
-                            designationName: 'Manager', 
-                            departmentName: 'HR',
-                            jobBand: {
-                                tier: 'C'
-                            }
-                        },
-                        { 
-                            _id: '3', 
-                            designationName: 'Analyst', 
-                            departmentName: 'Finance',
-                            jobBand: {
-                                tier: 'A'
-                            }
-                        }
-                    ]
-                };
+            const response = await fetch(url, config);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Request failed');
             }
-            
-            // Mock create/update responses
-            return { success: true, message: 'Operation successful' };
+
+            return data;
         } catch (error) {
             console.error('Request failed:', error);
             throw error;
@@ -247,20 +221,7 @@ const DesignationManagement = () => {
         setLoading(true);
         try {
             const response = await apiService.getAllDesignations();
-            let designationsList = [];
-
-            if (response && response.data) {
-                if (Array.isArray(response.data)) {
-                    designationsList = response.data;
-                } else if (response.data.designations && Array.isArray(response.data.designations)) {
-                    designationsList = response.data.designations;
-                } else if (typeof response.data === 'object') {
-                    const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
-                    if (possibleArrays.length > 0) {
-                        designationsList = possibleArrays[0];
-                    }
-                }
-            }
+            let designationsList = response.data || [];
 
             const designationsWithSerial = designationsList.map((designation, index) => ({
                 ...designation,
@@ -592,17 +553,14 @@ const DesignationManagement = () => {
                                 className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200"
                             />
 
-                            {/* Band Selection Section */}
-                         
-                                <Select
-                                    label="Band *"
-                                    name="jobBand.tier"
-                                    value={formData.jobBand.tier}
-                                    onChange={handleInputChange}
-                                    options={[{ value: '', label: 'Select Band' }, ...bandOptions]}
-                                    error={validationErrors['jobBand.tier']}
-                                />
-                           
+                            <Select
+                                label="Band *"
+                                name="jobBand.tier"
+                                value={formData.jobBand.tier}
+                                onChange={handleInputChange}
+                                options={[{ value: '', label: 'Select Band' }, ...bandOptions]}
+                                error={validationErrors['jobBand.tier']}
+                            />
 
                             <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
                                 <div className="flex items-start">
@@ -666,6 +624,6 @@ const DesignationManagement = () => {
             </div>
         </div>
     );
-};
+};  
 
 export default DesignationManagement;

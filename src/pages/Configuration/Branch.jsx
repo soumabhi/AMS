@@ -209,6 +209,8 @@ const apiService = {
 };
 
 console.log(Object.keys(apiService.assignEmployees));
+console.log(Object.keys(apiService.getAllBranches));
+console.log(Object.keys(apiService.assignEmployees)); 
 
 // Branch Management Component
 const BranchManagement = () => {
@@ -371,17 +373,17 @@ const validateForm = () => {
     return Object.keys(errors).length === 0;
 };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) {
-    showToast('Please fix all validation errors', 'error');
-    return;
-  }
-
-    setSubmitLoading(true);
-
-    try {
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+        showToast('Please fix all validation errors', 'error');
+        return;
+    }
+ setSubmitLoading(true);
+     try {
         // Prepare the data object with proper type conversions
+        console.log('Form data before submission:', formData);
+        console.log("BRANCH NAME:", formData.branchName);
         const dataToSubmit = {
             branchId: formData.branchId.trim(),
             branchName: formData.branchName.trim(),
@@ -397,29 +399,33 @@ const validateForm = () => {
                     parseFloat(formData.coordinates.coordinates[0]) || 0,
                     parseFloat(formData.coordinates.coordinates[1]) || 0
                 ]
-            }
+            },
+            password: formData.password
         };
 
         // Only include password if:
         // 1. Creating a new branch (always include)
         // 2. Editing and password field is not empty
-        if (!editingBranch || (editingBranch && formData.password)) {
-            dataToSubmit.password = formData.password;
-        }
-
-        // Additional validation for coordinates if needed
-        if (isNaN(dataToSubmit.coordinates.coordinates[0]) || 
-            isNaN(dataToSubmit.coordinates.coordinates[1])) {
-            throw new Error('Invalid coordinates provided');
+        if (editingBranch) {
+            const response = await apiService.updateBranch(editingBranch._id, dataToSubmit);
+            showToast(`Branch "${response.branch.branchName}" updated successfully`);
+        } else {
+            const response = await apiService.createBranch(dataToSubmit);
+            showToast(`Branch "${response.branchName}" created successfully`);
         }
 console.log('Submitting data:', dataToSubmit);
+
+   // Reset form and refresh data
+        resetForm();
+        await fetchBranches();
+        setIsModalOpen(false);
+        
 try {
-    const response = await apiService.createBranch(createData);
+    const response = await apiService.createBranch(dataToSubmit);
     console.log('API Response:', response);
-    // ... rest of your code
+    // ... rest of your success handling
 } catch (error) {
-    console.error('Detailed error:', error);
-    console.error('Error response:', error.response);
+    console.error('Submission error:', error);
     // ... rest of your error handling
 }
         // Branch operation based on edit/create mode

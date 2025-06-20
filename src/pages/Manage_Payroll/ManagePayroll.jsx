@@ -632,31 +632,31 @@ const PayrollManagement = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">PF Contribution</span>
-                <span className="font-medium text-red-600">-{formatCurrency(payroll.pfEmpContribution)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(payroll.pfEmpContribution)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">TDS ({payroll.tdsType})</span>
-                <span className="font-medium text-red-600">-{formatCurrency(payroll.tdsAmount)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(payroll.tdsAmount)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Professional Tax</span>
-                <span className="font-medium text-red-600">-{formatCurrency(payroll.proffesionalTax)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(payroll.proffesionalTax)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Salary Advance</span>
-                <span className="font-medium text-red-600">-{formatCurrency(payroll.salaryAdvanceDeductions)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(payroll.salaryAdvanceDeductions)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Loan Deductions</span>
-                <span className="font-medium text-red-600">-{formatCurrency(payroll.salaryLoanDeductions)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(payroll.salaryLoanDeductions)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Fooding Deductions</span>
-                <span className="font-medium text-red-600">-{formatCurrency(payroll.foodingDeductions)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(payroll.foodingDeductions)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Accommodation Deductions</span>
-                <span className="font-medium text-red-600">-{formatCurrency(payroll.accommodationDeductions)}</span>
+                <span className="font-medium text-red-600">{formatCurrency(payroll.accommodationDeductions)}</span>
               </div>
             </div>
           </div>

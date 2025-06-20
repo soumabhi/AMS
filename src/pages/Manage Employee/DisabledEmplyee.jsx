@@ -820,14 +820,14 @@ const exportToExcel = () => {
         <td className="px-6 py-4 whitespace-nowrap flex gap-2">
           <button
             onClick={() => handleViewEmployee(employee)}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-blue-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
             title="View"
           >
             <Eye className="w-5 h-5" />
           </button>
           <button
             onClick={() => handleEnableClick(employee)}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-green-400 hover:text-green-600 hover:bg-gray-100 rounded-lg transition-colors"
             title="Enable"
           >
             <Zap className="w-5 h-5" />

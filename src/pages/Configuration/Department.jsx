@@ -121,7 +121,7 @@ const DepartmentManagement = () => {
     const [validationErrors, setValidationErrors] = useState({});
 
     // API Configuration
-    const API_BASE_URL = 'http://localhost:5000/api/departments'; // Adjust to your actual API endpoint
+    const API_BASE_URL = 'http://localhost:5000/api/department'; // Adjust to your actual API endpoint
     const API_HEADERS = {
         'Content-Type': 'application/json',
         // Add authorization headers if needed
@@ -142,7 +142,7 @@ const DepartmentManagement = () => {
     const fetchDepartments = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}`, {
+            const response = await fetch(`${API_BASE_URL}/all`, {
                 headers: API_HEADERS
             });
             
@@ -193,8 +193,8 @@ const DepartmentManagement = () => {
 
         if (!formData.departmentName.trim()) {
             errors.departmentName = 'Department name is required';
-        } else if (formData.departmentName.trim().length < 3) {
-            errors.departmentName = 'Department name must be at least 3 characters';
+        } else if (formData.departmentName.trim().length < 1) {
+            errors.departmentName = 'Department name must be at least 1 characters';
         }
 
         setValidationErrors(errors);
@@ -217,11 +217,11 @@ const DepartmentManagement = () => {
 
             let response;
             let method;
-            let url = API_BASE_URL;
+            let url = `${API_BASE_URL}/create`;
 
             if (editingDepartment) {
                 method = 'PUT';
-                url = `${API_BASE_URL}/${editingDepartment.departmentId}`;
+                url = `${API_BASE_URL}/update/${editingDepartment.departmentId}`;
             } else {
                 method = 'POST';
             }
@@ -303,7 +303,8 @@ const DepartmentManagement = () => {
                             <div className="flex items-center gap-4">
                                 <div className="text-right">
                                     <p className="text-sm text-gray-500">Total Departments</p>
-                                    <p className="text-2xl font-bold text-gray-800">{departments.length}</p>
+                                    <p className="text-2xl font-bold text-gray-800">{departments
+                                    .length}</p>
                                 </div>
                             </div>
                         </div>
