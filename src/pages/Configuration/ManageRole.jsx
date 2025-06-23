@@ -239,11 +239,21 @@ const RoleManagement = () => {
     }
   };
 
-  const handleEdit = (role) => {
+const handleEdit = (role) => {
   setEditingRole(role);
   setFormData({
     role: role.role,
-    permissions: { ...role.permissions }
+    permissions: { 
+      Dashboard: role.permissions.Dashboard || false,
+      Branch: role.permissions.Branch || false,
+      BranchView: role.permissions.BranchView || false,
+      Staff: role.permissions.Staff || false,
+      StaffView: role.permissions.StaffView || false,
+      Attendance: role.permissions.Attendance || false,
+      AttendanceView: role.permissions.AttendanceView || false,
+      Salary: role.permissions.Salary || false,
+      SalaryView: role.permissions.SalaryView || false,
+    }
   });
   setCurrentPage('form');
   setSubmitAttempted(false);
@@ -441,123 +451,123 @@ const RoleManagement = () => {
     );
   };
 
-//   const RoleFormPage = () => {
-//     console.log("Form rendered, current value:", formData.role);
+  const RoleFormPage = () => {
+    console.log("Form rendered, current value:", formData.role);
 
-//     return (
-//       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-//         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50">
-//           <h2 className="text-lg font-semibold text-gray-900">
-//             {editingRole ? "Edit Role" : "Add New Role"}
-//           </h2>
-//           <button
-//             onClick={handleSubmit}
-//             disabled={loading || !formData.role.trim()}
-//             className="inline-flex items-center px-3 py-2 bg-black text-white rounded-md hover:bg-gray-900 transition-colors disabled:opacity-50 text-sm font-medium"
-//           >
-//             {loading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>}
-//             <Save className="w-3 h-3 mr-2" />
-//             {loading ? 'Saving...' : (editingRole ? "Update" : "Save")}
-//           </button>
-//         </div>
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {editingRole ? "Edit Role" : "Add New Role"}
+          </h2>
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !formData.role.trim()}
+            className="inline-flex items-center px-3 py-2 bg-black text-white rounded-md hover:bg-gray-900 transition-colors disabled:opacity-50 text-sm font-medium"
+          >
+            {loading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>}
+            <Save className="w-3 h-3 mr-2" />
+            {loading ? 'Saving...' : (editingRole ? "Update" : "Save")}
+          </button>
+        </div>
 
-//         <div className="p-5">
-//           <div className="mb-6">
-//             <div className="flex items-center mb-3">
-//               <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
-//               <label className="block text-sm font-medium text-gray-700">
-//                 Role Information
-//               </label>
-//             </div>
-//             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-//               <label className="block text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">
-//                 Role Name *
-//               </label>
-//               <input
-//                 type="text"
-//                 name="role"
-//                 value={formData.role}
-//                 onChange={handleInputChange}
-//                 placeholder="Enter role name"
-//                 disabled={loading}
-//                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500 text-sm disabled:opacity-50 disabled:bg-gray-100 ${
-//                   submitAttempted && !formData.role.trim() ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
-//                 }`}
-//               />
-//               {submitAttempted && !formData.role.trim() && (
-//                 <p className="text-red-500 text-xs mt-1">Role name is required</p>
-//               )}
-//             </div>
-//           </div>
+        <div className="p-5">
+          <div className="mb-6">
+            <div className="flex items-center mb-3">
+              <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
+              <label className="block text-sm font-medium text-gray-700">
+                Role Information
+              </label>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <label className="block text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">
+                Role Name *
+              </label>
+              <input
+                type="text"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                placeholder="Enter role name"
+                disabled={loading}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500 text-sm disabled:opacity-50 disabled:bg-gray-100 ${
+                  submitAttempted && !formData.role.trim() ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
+                }`}
+              />
+              {submitAttempted && !formData.role.trim() && (
+                <p className="text-red-500 text-xs mt-1">Role name is required</p>
+              )}
+            </div>
+          </div>
 
-//           <div>
-//             <div className="flex items-center mb-3">
-//               <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
-//               <h3 className="text-sm font-medium text-gray-700">Permission Settings</h3>
-//             </div>
-//             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-//               <div className="grid gap-3">
-//                 {permissionGroups.map(group => (
-//                   <div key={group.name} className="flex items-center justify-between p-3 bg-white rounded-md border border-gray-200 hover:border-gray-300 transition-colors">
-//                     <div className="flex items-center space-x-2">
-//                       <span className="text-sm">{permissionIcons[group.name] || '📋'}</span>
-//                       <span className="text-sm font-medium text-gray-900">{group.label}</span>
-//                     </div>
-//                     <div className="flex items-center space-x-4">
-//                       <label className="flex items-center cursor-pointer">
-//                         <input
-//                           type="checkbox"
-//                           checked={
-//                             group.name === 'Dashboard' 
-//                               ? formData.permissions.Dashboard
-//                               : formData.permissions[`${group.name}View`]
-//                           }
-//                           onChange={(e) => handlePermissionChange(group.name, 'view', e.target.checked)}
-//                           disabled={loading}
-//                           className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded disabled:opacity-50"
-//                         />
-//                         <span className="text-xs font-medium text-gray-600">View</span>
-//                       </label>
-//                       {group.name !== 'Dashboard' && (
-//                         <label className="flex items-center cursor-pointer">
-//                           <input
-//                             type="checkbox"
-//                             checked={formData.permissions[group.name]}
-//                             onChange={(e) => handlePermissionChange(group.name, 'edit', e.target.checked)}
-//                             disabled={loading}
-//                             className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded disabled:opacity-50"
-//                           />
-//                           <span className="text-xs font-medium text-gray-600">Edit</span>
-//                         </label>
-//                       )}
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           </div>
+          <div>
+            <div className="flex items-center mb-3">
+              <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
+              <h3 className="text-sm font-medium text-gray-700">Permission Settings</h3>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="grid gap-3">
+             {permissionGroups.map(group => (
+  <div key={group.name} className="flex items-center justify-between p-3 bg-white rounded-md border border-gray-200 hover:border-gray-300 transition-colors">
+    <div className="flex items-center space-x-2">
+      <span className="text-sm">{permissionIcons[group.name] || '📋'}</span>
+      <span className="text-sm font-medium text-gray-900">{group.label}</span>
+    </div>
+    <div className="flex items-center space-x-4">
+      <label className="flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          checked={
+            group.name === 'Dashboard' 
+              ? formData.permissions.Dashboard
+              : formData.permissions[`${group.name}View`]
+          }
+          onChange={(e) => handlePermissionChange(group.name, 'view', e.target.checked)}
+          disabled={loading}
+          className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded disabled:opacity-50"
+        />
+        <span className="text-xs font-medium text-gray-600">View</span>
+      </label>
+      {group.name !== 'Dashboard' && (
+        <label className="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={formData.permissions[group.name]}
+            onChange={(e) => handlePermissionChange(group.name, 'edit', e.target.checked)}
+            disabled={loading || !formData.permissions[`${group.name}View`]} // Disable edit if view is not checked
+            className="mr-2 h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded disabled:opacity-50"
+          />
+          <span className="text-xs font-medium text-gray-600">Edit</span>
+        </label>
+      )}
+    </div>
+  </div>
+))}
+              </div>
+            </div>
+          </div>
 
-//           <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
-//             <button
-//               onClick={navigateToRoleList}
-//               disabled={loading}
-//               className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50"
-//             >
-//               Cancel
-//             </button>
-//             <button
-//               onClick={handleSubmit}
-//               disabled={loading || !formData.role.trim()}
-//               className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-900 transition-colors disabled:opacity-50 text-sm font-medium"
-//             >
-//               {loading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2 inline-block"></div>}
-//               {loading ? 'Processing...' : (editingRole ? "Update Role" : "Create Role")}
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
+          <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+            <button
+              onClick={navigateToRoleList}
+              disabled={loading}
+              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !formData.role.trim()}
+              className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-900 transition-colors disabled:opacity-50 text-sm font-medium"
+            >
+              {loading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2 inline-block"></div>}
+              {loading ? 'Processing...' : (editingRole ? "Update Role" : "Create Role")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Eye, X, Download, AlertCircle, Calendar, User, FileText, ChevronLeft } from 'lucide-react';
+import { Edit, Eye, X, Download, AlertCircle, Calendar, User, FileText, ChevronLeft, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import Toast from '../../components/Toast';
 
@@ -143,7 +143,7 @@ const apiService = {
 };
 
 const PayrollManagement = () => {
-  // For development/testing, you can initialize with mock data like this:
+  // Mock data for development
   const [payrolls, setPayrolls] = useState([
     {
       _id: "1",
@@ -172,7 +172,8 @@ const PayrollManagement = () => {
       netSalary: 61300,
       remarks: "Regular payroll for April 2023",
       createdAt: "2023-04-01T00:00:00.000Z",
-      updatedAt: "2023-04-01T00:00:00.000Z"
+      updatedAt: "2023-04-01T00:00:00.000Z",
+      updatedBy: "admin@example.com"
     },
     {
       _id: "2",
@@ -201,7 +202,38 @@ const PayrollManagement = () => {
       netSalary: 49700,
       remarks: "Includes salary advance deduction",
       createdAt: "2023-04-01T00:00:00.000Z",
-      updatedAt: "2023-04-01T00:00:00.000Z"
+      updatedAt: "2023-04-01T00:00:00.000Z",
+      updatedBy: "hr@example.com"
+    },
+    {
+      _id: "3",
+      employeeId: "emp3",
+      salaryStructureId: "SAL-003",
+      basicSalary: 35000,
+      houseRentAllowance: 14000,
+      dearnessAllowance: 6000,
+      conveyanceAllowance: 2500,
+      medicalAllowance: 3500,
+      otherAllowances: 1200,
+      entertaintmentAllowance: 1000,
+      specialAllowance: 5000,
+      performanceBonus: 6000,
+      bonus: 4000,
+      incentives: 2500,
+      pfEmpContribution: 2100,
+      tdsType: "20%",
+      tdsAmount: 4000,
+      proffesionalTax: 200,
+      salaryAdvanceDeductions: 0,
+      salaryLoanDeductions: 2000,
+      foodingDeductions: 0,
+      accommodationDeductions: 1500,
+      grossSalary: 76300,
+      netSalary: 67700,
+      remarks: "Senior developer payroll",
+      createdAt: "2023-04-01T00:00:00.000Z",
+      updatedAt: "2023-04-01T00:00:00.000Z",
+      updatedBy: "admin@example.com"
     }
   ]);
 
@@ -212,7 +244,8 @@ const PayrollManagement = () => {
       firstName: "Rahul",
       lastName: "Sharma",
       email: "rahul.sharma@example.com",
-      department: "Engineering"
+      department: "Engineering",
+      designation: "Software Engineer"
     },
     {
       _id: "emp2",
@@ -220,7 +253,17 @@ const PayrollManagement = () => {
       firstName: "Priya",
       lastName: "Patel",
       email: "priya.patel@example.com",
-      department: "Marketing"
+      department: "Marketing",
+      designation: "Marketing Manager"
+    },
+    {
+      _id: "emp3",
+      employeeId: "EMP003",
+      firstName: "Amit",
+      lastName: "Kumar",
+      email: "amit.kumar@example.com",
+      department: "Engineering",
+      designation: "Senior Developer"
     }
   ]);
 
@@ -254,12 +297,25 @@ const PayrollManagement = () => {
     remarks: ""
   });
   const [validationErrors, setValidationErrors] = useState({});
+  
+  // Filter and search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [uniqueDepartments, setUniqueDepartments] = useState([]);
 
   // Fetch data on component mount
   useEffect(() => {
     fetchPayrolls();
     fetchEmployees();
   }, []);
+
+  // Extract unique departments when employees data changes
+  useEffect(() => {
+    if (employees.length > 0) {
+      const departments = [...new Set(employees.map(emp => emp.department))];
+      setUniqueDepartments(departments);
+    }
+  }, [employees]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, isVisible: true });
@@ -306,6 +362,31 @@ const PayrollManagement = () => {
       setEmployees([]);
     }
   };
+
+  // Filter payrolls based on search term and department
+  const filteredPayrolls = payrolls.filter(payroll => {
+    const employee = employees.find(emp => emp._id === payroll.employeeId);
+    if (!employee) return false;
+    
+    // Apply department filter
+    if (departmentFilter !== 'all' && employee.department !== departmentFilter) {
+      return false;
+    }
+    
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        employee.firstName.toLowerCase().includes(searchLower) ||
+        employee.lastName.toLowerCase().includes(searchLower) ||
+        employee.employeeId.toLowerCase().includes(searchLower) ||
+        employee.designation.toLowerCase().includes(searchLower) ||
+        payroll.salaryStructureId.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    return true;
+  });
 
   const resetForm = () => {
     setFormData({
@@ -425,7 +506,8 @@ const PayrollManagement = () => {
       const finalFormData = {
         ...formData,
         grossSalary: calculateGrossSalary(),
-        netSalary: calculateNetSalary()
+        netSalary: calculateNetSalary(),
+        updatedBy: "current_user@example.com" // In a real app, use the logged-in user's email
       };
 
       // For production, use the API call:
@@ -433,7 +515,11 @@ const PayrollManagement = () => {
       
       // For development, update local state
       const updatedPayrolls = payrolls.map(p => 
-        p._id === editingPayroll._id ? { ...p, ...finalFormData } : p
+        p._id === editingPayroll._id ? { 
+          ...p, 
+          ...finalFormData,
+          updatedAt: new Date().toISOString()
+        } : p
       );
       setPayrolls(updatedPayrolls);
 
@@ -495,6 +581,16 @@ const PayrollManagement = () => {
     return employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown Employee';
   };
 
+  const getEmployeeDetails = (employeeId) => {
+    const employee = employees.find(emp => emp._id === employeeId);
+    if (!employee) return null;
+    return {
+      id: employee.employeeId,
+      designation: employee.designation,
+      department: employee.department
+    };
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -505,6 +601,18 @@ const PayrollManagement = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatShortDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-IN', {
@@ -521,6 +629,8 @@ const PayrollManagement = () => {
         'SL No': payrolls.indexOf(payroll) + 1,
         'Employee Name': `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || 'Unknown',
         'Employee ID': employee.employeeId || '',
+        'Designation': employee.designation || '',
+        'Department': employee.department || '',
         'Salary Structure ID': payroll.salaryStructureId,
         'Basic Salary': payroll.basicSalary,
         'HRA': payroll.houseRentAllowance,
@@ -543,8 +653,9 @@ const PayrollManagement = () => {
         'Accommodation Deductions': payroll.accommodationDeductions,
         'Gross Salary': payroll.grossSalary,
         'Net Salary': payroll.netSalary,
-        'Created At': formatDate(payroll.createdAt),
-        'Updated At': formatDate(payroll.updatedAt)
+        'Updated By': payroll.updatedBy,
+        'Updated At': formatDate(payroll.updatedAt),
+        'Created At': formatDate(payroll.createdAt)
       };
     });
 
@@ -662,56 +773,66 @@ const PayrollManagement = () => {
           </div>
         </div>
 
-   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-  {/* Salary Box (left) - Improved with icons and better spacing */}
-  <div className="grid grid-cols-2 gap-3">
-    <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-green-50">
-          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Gross Salary</h3>
-          <p className="text-xl font-semibold text-gray-900">{formatCurrency(payroll.grossSalary)}</p>
-        </div>
-      </div>
-    </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-green-50">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Gross Salary</h3>
+                  <p className="text-xl font-semibold text-gray-900">{formatCurrency(payroll.grossSalary)}</p>
+                </div>
+              </div>
+            </div>
 
-    <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-blue-50">
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-          </svg>
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-gray-500 mb-1">Net Salary</h3>
-          <p className="text-xl font-semibold text-gray-900">{formatCurrency(payroll.netSalary)}</p>
-        </div>
-      </div>
-    </div>
-  </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Net Salary</h3>
+                  <p className="text-xl font-semibold text-gray-900">{formatCurrency(payroll.netSalary)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-  {/* Remarks Box (right) - Enhanced design */}
-  {payroll.remarks && (
-    <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-purple-50">
-          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
-          </svg>
+          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-gray-50">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-1">Last Updated</h3>
+                <p className="text-sm font-semibold text-gray-900">{payroll.updatedBy}</p>
+                <p className="text-xs text-gray-500 mt-1">{formatDate(payroll.updatedAt)}</p>
+              </div>
+            </div>
+          </div>
+
+          {payroll.remarks && (
+            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-purple-50">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Remarks</h3>
+                  <p className="text-gray-700 whitespace-pre-wrap">{payroll.remarks}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Remarks</h3>
-          <p className="text-gray-700 whitespace-pre-wrap">{payroll.remarks}</p>
-        </div>
-      </div>
-    </div>
-  )}
-</div>
-      
       </div>
     );
   };
@@ -782,337 +903,345 @@ const PayrollManagement = () => {
 
                     <div className="p-6">
                       <form onSubmit={handleSubmit} className="space-y-4">
-                      <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-4 text-xs">
-  <div className="font-semibold text-gray-700 mb-1">Employee Information</div>
-  <div className="flex items-center gap-2">
-    <span className="text-gray-500">Employee:</span>
-    <span className="font-medium">{getEmployeeName(formData.employeeId)}</span>
-  </div>
-  <div className="flex items-center gap-2 mt-1">
-    <span className="text-gray-500">Structure ID:</span>
-    <span className="font-medium">{formData.salaryStructureId}</span>
-  </div>
-</div>
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-4 text-xs">
+                          <div className="font-semibold text-gray-700 mb-1">Employee Information</div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-500">Employee:</span>
+                            <span className="font-medium">{getEmployeeName(formData.employeeId)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-gray-500">Structure ID:</span>
+                            <span className="font-medium">{formData.salaryStructureId}</span>
+                          </div>
+                        </div>
 
-<div className="grid grid-cols-5 gap-2">
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Basic Salary *"
-      name="basicSalary"
-      value={formData.basicSalary}
-      onChange={handleInputChange}
-      placeholder="0"
-      error={validationErrors.basicSalary}
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"  // Increased padding and height
-    />
-  </div>
+                        <div className="grid grid-cols-5 gap-2">
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Basic Salary *"
+                              name="basicSalary"
+                              value={formData.basicSalary}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              error={validationErrors.basicSalary}
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="HRA"
-      name="houseRentAllowance"
-      value={formData.houseRentAllowance}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="HRA"
+                              name="houseRentAllowance"
+                              value={formData.houseRentAllowance}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Dearness Allowance"
-      name="dearnessAllowance"
-      value={formData.dearnessAllowance}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Dearness Allowance"
+                              name="dearnessAllowance"
+                              value={formData.dearnessAllowance}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Conveyance Allowance"
-      name="conveyanceAllowance"
-      value={formData.conveyanceAllowance}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
-  
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Medical Allowance"
-      name="medicalAllowance"
-      value={formData.medicalAllowance}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
-</div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Conveyance Allowance"
+                              name="conveyanceAllowance"
+                              value={formData.conveyanceAllowance}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
+                          
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Medical Allowance"
+                              name="medicalAllowance"
+                              value={formData.medicalAllowance}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
+                        </div>
 
-<div className="grid grid-cols-5 gap-2 mt-1">
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Other Allowances"
-      name="otherAllowances"
-      value={formData.otherAllowances}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
-  
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Entertainment Allowance"
-      name="entertainmentAllowance"
-      value={formData.entertainmentAllowance}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                        <div className="grid grid-cols-5 gap-2 mt-1">
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Other Allowances"
+                              name="otherAllowances"
+                              value={formData.otherAllowances}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
+                          
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Entertainment Allowance"
+                              name="entertainmentAllowance"
+                              value={formData.entertainmentAllowance}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Special Allowance"
-      name="specialAllowance"
-      value={formData.specialAllowance}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Special Allowance"
+                              name="specialAllowance"
+                              value={formData.specialAllowance}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Performance Bonus"
-      name="performanceBonus"
-      value={formData.performanceBonus}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Performance Bonus"
+                              name="performanceBonus"
+                              value={formData.performanceBonus}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Bonus"
-      name="bonus"
-      value={formData.bonus}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
-</div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Bonus"
+                              name="bonus"
+                              value={formData.bonus}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
+                        </div>
 
-<div className="grid grid-cols-5 gap-2 mt-1">
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Incentives"
-      name="incentives"
-      value={formData.incentives}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                        <div className="grid grid-cols-5 gap-2 mt-1">
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Incentives"
+                              name="incentives"
+                              value={formData.incentives}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="PF Contribution"
-      name="pfEmpContribution"
-      value={formData.pfEmpContribution}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="PF Contribution"
+                              name="pfEmpContribution"
+                              value={formData.pfEmpContribution}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs relative">
-    <Select
-      label="TDS Type"
-      name="tdsType"
-      value={formData.tdsType}
-      onChange={handleInputChange}
-      options={[
-        { value: "", label: "Select TDS Type" },
-        { value: "10%", label: "10%" },
-        { value: "20%", label: "20%" },
-        { value: "30%", label: "30%" },
-        { value: "Other", label: "Other" }
-      ]}
-      className="text-xs p-2 h-10 w-full"  // Increased padding and height
-      menuClassName="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg"
-    />
-  </div>
+                          <div className="col-span-1 text-xs relative">
+                            <Select
+                              label="TDS Type"
+                              name="tdsType"
+                              value={formData.tdsType}
+                              onChange={handleInputChange}
+                              options={[
+                                { value: "", label: "Select TDS Type" },
+                                { value: "10%", label: "10%" },
+                                { value: "20%", label: "20%" },
+                                { value: "30%", label: "30%" },
+                                { value: "Other", label: "Other" }
+                              ]}
+                              className="text-xs p-2 h-10 w-full"
+                              menuClassName="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="TDS Amount"
-      name="tdsAmount"
-      value={formData.tdsAmount}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="TDS Amount"
+                              name="tdsAmount"
+                              value={formData.tdsAmount}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Professional Tax"
-      name="proffesionalTax"
-      value={formData.proffesionalTax}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
-</div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Professional Tax"
+                              name="proffesionalTax"
+                              value={formData.proffesionalTax}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
+                        </div>
 
-<div className="grid grid-cols-5 gap-2 mt-1">
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Salary Advance Deductions"
-      name="salaryAdvanceDeductions"
-      value={formData.salaryAdvanceDeductions}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                        <div className="grid grid-cols-5 gap-2 mt-1">
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Salary Advance Deductions"
+                              name="salaryAdvanceDeductions"
+                              value={formData.salaryAdvanceDeductions}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Loan Deductions"
-      name="salaryLoanDeductions"
-      value={formData.salaryLoanDeductions}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Loan Deductions"
+                              name="salaryLoanDeductions"
+                              value={formData.salaryLoanDeductions}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Fooding Deductions"
-      name="foodingDeductions"
-      value={formData.foodingDeductions}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Fooding Deductions"
+                              name="foodingDeductions"
+                              value={formData.foodingDeductions}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Accommodation Deductions"
-      name="accommodationDeductions"
-      value={formData.accommodationDeductions}
-      onChange={handleInputChange}
-      placeholder="0"
-      type="text"
-      prefix={true}
-      className="text-xs p-2 h-10"
-    />
-  </div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Accommodation Deductions"
+                              name="accommodationDeductions"
+                              value={formData.accommodationDeductions}
+                              onChange={handleInputChange}
+                              placeholder="0"
+                              type="text"
+                              prefix={true}
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
 
-  <div className="col-span-1 text-xs">
-    <Input
-      label="Remarks"
-      name="remarks"
-      value={formData.remarks}
-      onChange={handleInputChange}
-      placeholder="Any additional notes"
-      type="text"
-      className="text-xs p-2 h-10"
-    />
-  </div>
-</div>
+                          <div className="col-span-1 text-xs">
+                            <Input
+                              label="Remarks"
+                              name="remarks"
+                              value={formData.remarks}
+                              onChange={handleInputChange}
+                              placeholder="Any additional notes"
+                              type="text"
+                              className="text-xs p-2 h-10"
+                            />
+                          </div>
+                        </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-  <div className="flex flex-wrap items-center justify-between gap-4">
-    {/* Gross Salary */}
-    <div className="flex-1 min-w-[200px]">
-      <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-full bg-green-50">
-            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Gross Salary</h3>
-            <p className="text-xl font-semibold text-gray-900">
-              {formatCurrency(calculateGrossSalary())}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+                        <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex-1 min-w-[200px]">
+                              <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-full bg-green-50">
+                                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-gray-500 mb-1">Gross Salary</h3>
+                                    <p className="text-xl font-semibold text-gray-900">
+                                      {formatCurrency(calculateGrossSalary())}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 
-    {/* Net Salary */}
-    <div className="flex-1 min-w-[200px]">
-      <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-full bg-blue-50">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Net Salary</h3>
-            <p className="text-xl font-semibold text-gray-900">
-              {formatCurrency(calculateNetSalary())}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+                            <div className="flex-1 min-w-[200px]">
+                              <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-full bg-blue-50">
+                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-gray-500 mb-1">Net Salary</h3>
+                                    <p className="text-xl font-semibold text-gray-900">
+                                      {formatCurrency(calculateNetSalary())}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 
-    {/* Optional: Add a separator */}
-    <div className="hidden md:block h-12 w-px bg-gray-200"></div>
-
-    {/* Optional: Add more salary metrics if needed */}
-  </div>
-</div>
+                            <div className="flex-1 min-w-[200px]">
+                              <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-full bg-gray-50">
+                                    <User className="w-5 h-5 text-gray-600" />
+                                  </div>
+                                  <div>
+                                    <h3 className="text-sm font-medium text-gray-500 mb-1">Last Updated</h3>
+                                    <p className="text-sm font-semibold text-gray-900">{editingPayroll.updatedBy}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{formatDate(editingPayroll.updatedAt)}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         <div className="flex justify-end gap-3 pt-6">
                           <button
                             type="button"
@@ -1137,83 +1266,136 @@ const PayrollManagement = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          SL No
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Employee
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Structure ID
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Gross Salary
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Net Salary
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Updated At
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    {loading ? (
-                      <TableSkeleton />
-                    ) : (
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {payrolls.map((payroll, index) => (
-                          <tr key={payroll._id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {index + 1}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
-                                {getEmployeeName(payroll.employeeId)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payroll.salaryStructureId}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {formatCurrency(payroll.grossSalary)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                              {formatCurrency(payroll.netSalary)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatDate(payroll.updatedAt)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  onClick={() => handleView(payroll)}
-                                  className="text-gray-600 hover:text-gray-900 p-1 rounded-full hover:bg-gray-100 transition-colors"
-                                  title="View"
-                                >
-                                  <Eye className="w-5 h-5" />
-                                </button>
-                                {/* <button
-                                  onClick={() => handleEdit(payroll)}
-                                  className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50 transition-colors"
-                                  title="Edit"
-                                >
-                                  <Edit className="w-5 h-5" />
-                                </button> */}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    )}
-                  </table>
+              <div className="space-y-6">
+                {/* Search and Filter Section */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    {/* Search Input */}
+    <div className="col-span-1 md:col-span-2">
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search..."
+          className="block w-full pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+    </div>
+
+    {/* Department Filter */}
+    <div className="col-span-1">
+      <select
+        className="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
+        value={departmentFilter}
+        onChange={(e) => setDepartmentFilter(e.target.value)}
+      >
+        <option value="all">All</option>
+        {uniqueDepartments.map((dept) => (
+          <option key={dept} value={dept}>{dept}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+</div>
+
+
+                {/* Payroll Table */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            SL No
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Employee
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Structure ID
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Gross Salary
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Net Salary
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Last Updated
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      {loading ? (
+                        <TableSkeleton />
+                      ) : (
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {filteredPayrolls.length > 0 ? (
+                            filteredPayrolls.map((payroll, index) => {
+                              const employeeDetails = getEmployeeDetails(payroll.employeeId);
+                              return (
+                                <tr key={payroll._id} className="hover:bg-gray-50 transition-colors">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {index + 1}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {getEmployeeName(payroll.employeeId)}
+                                      </div>
+                                      {employeeDetails && (
+                                        <div className="text-xs text-gray-500 mt-1">
+                                          {employeeDetails.id} / {employeeDetails.designation}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {payroll.salaryStructureId}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {formatCurrency(payroll.grossSalary)}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                                    {formatCurrency(payroll.netSalary)}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex flex-col">
+                                      <span className="text-sm text-gray-900">{payroll.updatedBy}</span>
+                                      <span className="text-xs text-gray-500">{formatShortDate(payroll.updatedAt)}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div className="flex justify-end gap-2">
+                                      <button
+                                        onClick={() => handleView(payroll)}
+                                        className="text-gray-600 hover:text-gray-900 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                        title="View"
+                                      >
+                                        <Eye className="w-5 h-5" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                                No payroll records found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      )}
+                    </table>
+                  </div>
                 </div>
               </div>
             )}

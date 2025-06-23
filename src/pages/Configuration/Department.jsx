@@ -33,12 +33,6 @@ const TableSkeleton = () => {
                         <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-24"></div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-16"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full w-16"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
                         <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg w-16"></div>
                     </td>
                 </tr>
@@ -75,38 +69,6 @@ const Input = ({ label, value, onChange, placeholder, error, type = "text", clas
     );
 };
 
-// Select Component
-const Select = ({ label, value, onChange, options, error, className = "", disabled = false, name }) => {
-    return (
-        <div className="space-y-2">
-            {label && (
-                <label className="block text-sm font-semibold text-gray-700">
-                    {label}
-                </label>
-            )}
-            <select
-                name={name}
-                value={value}
-                onChange={onChange}
-                disabled={disabled}
-                className={`w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 disabled:bg-gray-50 disabled:cursor-not-allowed transition-all duration-200 ${error ? 'border-gray-400 bg-gray-50/50' : 'hover:border-gray-300'} ${className}`}
-            >
-                {options.map(option => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
-                ))}
-            </select>
-            {error && (
-                <p className="text-sm text-gray-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
-                    {error}
-                </p>
-            )}
-        </div>
-    );
-};
-
 // Main Department Management Component
 const DepartmentManagement = () => {
     const [departments, setDepartments] = useState([]);
@@ -115,8 +77,7 @@ const DepartmentManagement = () => {
     const [submitLoading, setSubmitLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [formData, setFormData] = useState({
-        departmentName: "",
-        status: "Active"
+        departmentName: ""
     });
     const [validationErrors, setValidationErrors] = useState({});
 
@@ -153,12 +114,10 @@ const DepartmentManagement = () => {
             const data = await response.json();
             
             // Transform the API response to match our expected format
-            const departmentList = Array.isArray(data) ? data : data.departments || [];
+            const departmentList = Array.isArray(data) ? data : data.data || data.departments || [];
             
             const enrichedDepartments = departmentList.map((item, index) => ({
-                departmentId: item.id || item.departmentId || `DEPT${String(index + 1).padStart(3, '0')}`,
-                departmentName: item.name || item.departmentName,
-                status: item.status || 1, // Default to active if not specified
+                departmentName: item.departmentName || item.name,
                 serialNo: index + 1
             }));
             
@@ -201,82 +160,87 @@ const DepartmentManagement = () => {
         return Object.keys(errors).length === 0;
     };
 
-    const handleSubmit = async () => {
-        if (!validateForm()) {
-            showToast('Please fix all validation errors', 'error');
-            return;
+  // Update your API calls to include better error handling
+const handleSubmit = async () => {
+    if (!validateForm()) {
+        showToast('Please fix all validation errors', 'error');
+        return;
+    }
+
+    setSubmitLoading(true);
+
+    try {
+        const payload = {
+            departmentName: formData.departmentName.trim()
+        };
+            console.log('Submitting payload:', payload); // Debug log
+            
+        let response;
+let url = `${API_BASE_URL}/create`; // Adds 'create' to the base URL
+let method = 'POST';
+
+
+        if (editingDepartment) {
+            // Make sure your backend expects the ID in this format
+            url = `${API_BASE_URL}/${editingDepartment.serialNo}`;
+            method = 'PUT';
         }
+         console.log(`Making ${method} request to:`, url); // Debug log
 
-        setSubmitLoading(true);
 
-        try {
-            const payload = {
-                name: formData.departmentName.trim(),
-                status: formData.status === 'Active' ? 1 : 0
-            };
-
-            let response;
-            let method;
-            let url = `${API_BASE_URL}/create`;
-
-            if (editingDepartment) {
-                method = 'PUT';
-                url = `${API_BASE_URL}/update/${editingDepartment.departmentId}`;
-            } else {
-                method = 'POST';
-            }
-
-            response = await fetch(url, {
-                method,
-                headers: API_HEADERS,
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
+        response = await fetch(url, {
+            method,
+            headers: API_HEADERS,
+            body: JSON.stringify(payload)
+        });
+        
+        console.log('Received response:', response); // Debug log
 
             if (!response.ok) {
-                throw new Error(result.message || 'Request failed');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message || 
+                    `Server returned ${response.status}: ${response.statusText}`
+                );
             }
 
-            showToast(
-                editingDepartment 
-                    ? 'Department updated successfully' 
-                    : 'Department added successfully'
-            );
-            
-            resetForm();
-            await fetchDepartments();
-        } catch (error) {
-            console.error('Submission error:', error);
-            showToast(error.message || 'Failed to save department. Please try again.', 'error');
-        } finally {
-            setSubmitLoading(false);
-        }
-    };
+        const result = await response.json();
+           console.log('Response data:', result); // Debug log
+
+
+        showToast(
+            result.message || 
+            (editingDepartment 
+                ? 'Department updated successfully' 
+                : 'Department added successfully')
+        );
+        
+        resetForm();
+       await fetchDepartments();
+    } catch (error) {
+        console.error('Submission error:', error);
+        showToast(error.message || 'Failed to save department. Please try again.', 'error');
+    } finally {
+        setSubmitLoading(false);
+    }
+};
 
     const handleEdit = (department) => {
         setEditingDepartment(department);
         setFormData({
-            departmentName: department.departmentName,
-            status: department.status === 1 ? "Active" : "Inactive"
+            departmentName: department.departmentName
         });
     };
 
     const resetForm = () => {
         setFormData({
-            departmentName: "",
-            status: "Active"
+            departmentName: ""
         });
         setValidationErrors({});
         setEditingDepartment(null);
     };
 
-    const getStatusColor = (status) => {
-        const isActive = status === 1 || status === "1" || status === "Active";
-        return isActive 
-            ? 'bg-gradient-to-r from-gray-800 to-black text-white' 
-            : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800';
-    };
+    
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
@@ -303,8 +267,7 @@ const DepartmentManagement = () => {
                             <div className="flex items-center gap-4">
                                 <div className="text-right">
                                     <p className="text-sm text-gray-500">Total Departments</p>
-                                    <p className="text-2xl font-bold text-gray-800">{departments
-                                    .length}</p>
+                                    <p className="text-2xl font-bold text-gray-800">{departments.length}</p>
                                 </div>
                             </div>
                         </div>
@@ -319,13 +282,7 @@ const DepartmentManagement = () => {
                                             #
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                            Department ID
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Department Name
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                                            Status
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                                             Actions
@@ -339,7 +296,7 @@ const DepartmentManagement = () => {
                                     <tbody className="bg-white divide-y divide-gray-50">
                                         {departments.map((department) => (
                                             <tr
-                                                key={department.departmentId}
+                                                key={department.serialNo}
                                                 className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200"
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -348,22 +305,8 @@ const DepartmentManagement = () => {
                                                     </div>
                                                 </td>
 
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                                                    {department.departmentId}
-                                                </td>
-
                                                 <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">
                                                     {department.departmentName}
-                                                </td>
-
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                                                            department.status
-                                                        )}`}
-                                                    >
-                                                        {department.status === 1 ? "Active" : "Inactive"}
-                                                    </span>
                                                 </td>
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -380,7 +323,7 @@ const DepartmentManagement = () => {
 
                                         {!loading && departments.length === 0 && (
                                             <tr>
-                                                <td colSpan={5} className="px-6 py-16 text-center">
+                                                <td colSpan={3} className="px-6 py-16 text-center">
                                                     <div className="text-center">
                                                         <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
                                                             <Users className="w-12 h-12 text-gray-500" />
@@ -434,18 +377,6 @@ const DepartmentManagement = () => {
                                 className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
                             />
 
-                            <Select
-                                label="Status *"
-                                name="status"
-                                value={formData.status}
-                                onChange={handleInputChange}
-                                options={[
-                                    { value: "Active", label: "Active" },
-                                    { value: "Inactive", label: "Inactive" }
-                                ]}
-                                className='bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-all duration-200'
-                            />
-
                             <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
                                 <div className="flex items-start">
                                     <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center mr-3 mt-0.5">
@@ -461,10 +392,6 @@ const DepartmentManagement = () => {
                                             <li className="flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
                                                 <span>Department names should be unique</span>
-                                            </li>
-                                            <li className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-                                                <span>New departments are automatically set to Active</span>
                                             </li>
                                         </ul>
                                     </div>
