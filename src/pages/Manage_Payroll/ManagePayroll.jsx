@@ -161,7 +161,7 @@ const PayrollManagement = () => {
       bonus: 3000,
       incentives: 2000,
       pfEmpContribution: 1800,
-      tdsType: "10%",
+      tdsType: "10",
       tdsAmount: 3000,
       proffesionalTax: 200,
       salaryAdvanceDeductions: 0,
@@ -191,7 +191,7 @@ const PayrollManagement = () => {
       bonus: 2000,
       incentives: 1500,
       pfEmpContribution: 1500,
-      tdsType: "10%",
+      tdsType: "10",
       tdsAmount: 2500,
       proffesionalTax: 200,
       salaryAdvanceDeductions: 1000,
@@ -221,7 +221,7 @@ const PayrollManagement = () => {
       bonus: 4000,
       incentives: 2500,
       pfEmpContribution: 2100,
-      tdsType: "20%",
+      tdsType: "",
       tdsAmount: 4000,
       proffesionalTax: 200,
       salaryAdvanceDeductions: 0,
@@ -245,7 +245,8 @@ const PayrollManagement = () => {
       lastName: "Sharma",
       email: "rahul.sharma@example.com",
       department: "Engineering",
-      designation: "Software Engineer"
+      designation: "Software Engineer",
+      branch: "Bangalore"
     },
     {
       _id: "emp2",
@@ -254,7 +255,8 @@ const PayrollManagement = () => {
       lastName: "Patel",
       email: "priya.patel@example.com",
       department: "Marketing",
-      designation: "Marketing Manager"
+      designation: "Marketing Manager",
+      branch: "Mumbai"
     },
     {
       _id: "emp3",
@@ -263,7 +265,8 @@ const PayrollManagement = () => {
       lastName: "Kumar",
       email: "amit.kumar@example.com",
       department: "Engineering",
-      designation: "Senior Developer"
+      designation: "Senior Developer",
+      branch: "Delhi"
     }
   ]);
 
@@ -301,7 +304,11 @@ const PayrollManagement = () => {
   // Filter and search state
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [designationFilter, setDesignationFilter] = useState('all');
+  const [branchFilter, setBranchFilter] = useState('all');
   const [uniqueDepartments, setUniqueDepartments] = useState([]);
+  const [uniqueDesignations, setUniqueDesignations] = useState([]);
+  const [uniqueBranches, setUniqueBranches] = useState([]);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -309,11 +316,15 @@ const PayrollManagement = () => {
     fetchEmployees();
   }, []);
 
-  // Extract unique departments when employees data changes
+  // Extract unique departments, designations and branches when employees data changes
   useEffect(() => {
     if (employees.length > 0) {
       const departments = [...new Set(employees.map(emp => emp.department))];
+      const designations = [...new Set(employees.map(emp => emp.designation))];
+      const branches = [...new Set(employees.map(emp => emp.branch))];
       setUniqueDepartments(departments);
+      setUniqueDesignations(designations);
+      setUniqueBranches(branches);
     }
   }, [employees]);
 
@@ -363,7 +374,7 @@ const PayrollManagement = () => {
     }
   };
 
-  // Filter payrolls based on search term and department
+  // Filter payrolls based on search term and filters
   const filteredPayrolls = payrolls.filter(payroll => {
     const employee = employees.find(emp => emp._id === payroll.employeeId);
     if (!employee) return false;
@@ -373,15 +384,23 @@ const PayrollManagement = () => {
       return false;
     }
     
+    // Apply designation filter
+    if (designationFilter !== 'all' && employee.designation !== designationFilter) {
+      return false;
+    }
+    
+    // Apply branch filter
+    if (branchFilter !== 'all' && employee.branch !== branchFilter) {
+      return false;
+    }
+    
     // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       return (
         employee.firstName.toLowerCase().includes(searchLower) ||
         employee.lastName.toLowerCase().includes(searchLower) ||
-        employee.employeeId.toLowerCase().includes(searchLower) ||
-        employee.designation.toLowerCase().includes(searchLower) ||
-        payroll.salaryStructureId.toLowerCase().includes(searchLower)
+        employee.employeeId.toLowerCase().includes(searchLower)
       );
     }
     
@@ -587,7 +606,8 @@ const PayrollManagement = () => {
     return {
       id: employee.employeeId,
       designation: employee.designation,
-      department: employee.department
+      department: employee.department,
+      branch: employee.branch
     };
   };
 
@@ -631,7 +651,7 @@ const PayrollManagement = () => {
         'Employee ID': employee.employeeId || '',
         'Designation': employee.designation || '',
         'Department': employee.department || '',
-        'Salary Structure ID': payroll.salaryStructureId,
+        'Branch': employee.branch || '',
         'Basic Salary': payroll.basicSalary,
         'HRA': payroll.houseRentAllowance,
         'Dearness Allowance': payroll.dearnessAllowance,
@@ -653,9 +673,7 @@ const PayrollManagement = () => {
         'Accommodation Deductions': payroll.accommodationDeductions,
         'Gross Salary': payroll.grossSalary,
         'Net Salary': payroll.netSalary,
-        'Updated By': payroll.updatedBy,
-        'Updated At': formatDate(payroll.updatedAt),
-        'Created At': formatDate(payroll.createdAt)
+        'Remarks': payroll.remarks
       };
     });
 
@@ -674,7 +692,7 @@ const PayrollManagement = () => {
             <h2 className="text-2xl font-bold text-gray-900">
               {getEmployeeName(payroll.employeeId)}
             </h2>
-            <p className="text-gray-600">{payroll.salaryStructureId}</p>
+            <p className="text-gray-600">{payroll.employeeId}</p>
           </div>
           {!editingPayroll && (
             <button
@@ -687,152 +705,130 @@ const PayrollManagement = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Earnings</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Basic Salary</span>
-                <span className="font-medium">{formatCurrency(payroll.basicSalary)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">House Rent Allowance</span>
-                <span className="font-medium">{formatCurrency(payroll.houseRentAllowance)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Dearness Allowance</span>
-                <span className="font-medium">{formatCurrency(payroll.dearnessAllowance)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Conveyance Allowance</span>
-                <span className="font-medium">{formatCurrency(payroll.conveyanceAllowance)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Medical Allowance</span>
-                <span className="font-medium">{formatCurrency(payroll.medicalAllowance)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Other Allowances</span>
-                <span className="font-medium">{formatCurrency(payroll.otherAllowances)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Entertainment Allowance</span>
-                <span className="font-medium">{formatCurrency(payroll.entertaintmentAllowance)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Special Allowance</span>
-                <span className="font-medium">{formatCurrency(payroll.specialAllowance)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Performance Bonus</span>
-                <span className="font-medium">{formatCurrency(payroll.performanceBonus)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Bonus</span>
-                <span className="font-medium">{formatCurrency(payroll.bonus)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Incentives</span>
-                <span className="font-medium">{formatCurrency(payroll.incentives)}</span>
-              </div>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  {/* Earnings Section */}
+  <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">
+    <h3 className="text-md font-semibold text-gray-800 mb-3">Earnings</h3>
+    <div className="space-y-2 text-sm">
+      <div className="flex justify-between">
+        <span className="text-gray-600">Basic Salary</span>
+        <span className="font-medium">{formatCurrency(payroll.basicSalary)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">HRA</span>
+        <span className="font-medium">{formatCurrency(payroll.houseRentAllowance)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">DA</span>
+        <span className="font-medium">{formatCurrency(payroll.dearnessAllowance)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Conveyance</span>
+        <span className="font-medium">{formatCurrency(payroll.conveyanceAllowance)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Medical</span>
+        <span className="font-medium">{formatCurrency(payroll.medicalAllowance)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Other Allowances</span>
+        <span className="font-medium">{formatCurrency(payroll.otherAllowances)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Entertainment</span>
+        <span className="font-medium">{formatCurrency(payroll.entertaintmentAllowance)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Special Allowance</span>
+        <span className="font-medium">{formatCurrency(payroll.specialAllowance)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Performance Bonus</span>
+        <span className="font-medium">{formatCurrency(payroll.performanceBonus)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Bonus</span>
+        <span className="font-medium">{formatCurrency(payroll.bonus)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Incentives</span>
+        <span className="font-medium">{formatCurrency(payroll.incentives)}</span>
+      </div>
+    </div>
+  </div>
 
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Deductions</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">PF Contribution</span>
-                <span className="font-medium text-red-600">{formatCurrency(payroll.pfEmpContribution)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">TDS ({payroll.tdsType})</span>
-                <span className="font-medium text-red-600">{formatCurrency(payroll.tdsAmount)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Professional Tax</span>
-                <span className="font-medium text-red-600">{formatCurrency(payroll.proffesionalTax)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Salary Advance</span>
-                <span className="font-medium text-red-600">{formatCurrency(payroll.salaryAdvanceDeductions)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Loan Deductions</span>
-                <span className="font-medium text-red-600">{formatCurrency(payroll.salaryLoanDeductions)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Fooding Deductions</span>
-                <span className="font-medium text-red-600">{formatCurrency(payroll.foodingDeductions)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Accommodation Deductions</span>
-                <span className="font-medium text-red-600">{formatCurrency(payroll.accommodationDeductions)}</span>
-              </div>
-            </div>
-          </div>
+  {/* Deductions Section */}
+  <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">
+    <h3 className="text-md font-semibold text-gray-800 mb-3">Deductions</h3>
+    <div className="space-y-2 text-sm">
+      <div className="flex justify-between">
+        <span className="text-gray-600">PF Contribution</span>
+        <span className="font-medium text-red-600">-{formatCurrency(payroll.pfEmpContribution)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">TDS ({payroll.tdsType})</span>
+        <span className="font-medium text-red-600">-{formatCurrency(payroll.tdsAmount)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Professional Tax</span>
+        <span className="font-medium text-red-600">-{formatCurrency(payroll.proffesionalTax)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Salary Advance</span>
+        <span className="font-medium text-red-600">-{formatCurrency(payroll.salaryAdvanceDeductions)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Loan Deductions</span>
+        <span className="font-medium text-red-600">-{formatCurrency(payroll.salaryLoanDeductions)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Fooding</span>
+        <span className="font-medium text-red-600">-{formatCurrency(payroll.foodingDeductions)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-600">Accommodation</span>
+        <span className="font-medium text-red-600">-{formatCurrency(payroll.accommodationDeductions)}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* Totals Row */}
+
+
+       <div className="flex flex-col md:flex-row gap-4 mb-6">
+  {/* Gross Salary Card */}
+  <div className="flex-1 bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+    <div className="flex items-start gap-3">
+      <div className="p-2 rounded-lg bg-green-50">
+        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 mb-1">Gross Salary</h3>
+        <p className="text-xl font-semibold text-gray-900">{formatCurrency(payroll.grossSalary)}</p>
+      </div>
+    </div>
+  </div>
+
+  {/* Remarks Card - Conditionally Rendered */}
+  {payroll.remarks && (
+    <div className="flex-1 bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-lg bg-purple-50">
+          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+          </svg>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-green-50">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Gross Salary</h3>
-                  <p className="text-xl font-semibold text-gray-900">{formatCurrency(payroll.grossSalary)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Net Salary</h3>
-                  <p className="text-xl font-semibold text-gray-900">{formatCurrency(payroll.netSalary)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gray-50">
-                <User className="w-5 h-5 text-gray-600" />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Last Updated</h3>
-                <p className="text-sm font-semibold text-gray-900">{payroll.updatedBy}</p>
-                <p className="text-xs text-gray-500 mt-1">{formatDate(payroll.updatedAt)}</p>
-              </div>
-            </div>
-          </div>
-
-          {payroll.remarks && (
-            <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-purple-50">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Remarks</h3>
-                  <p className="text-gray-700 whitespace-pre-wrap">{payroll.remarks}</p>
-                </div>
-              </div>
-            </div>
-          )}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Remarks</h3>
+          <p className="text-gray-700 whitespace-pre-wrap">{payroll.remarks}</p>
         </div>
+      </div>
+    </div>
+  )}
+</div>
       </div>
     );
   };
@@ -866,13 +862,13 @@ const PayrollManagement = () => {
                   <p className="text-sm text-gray-500">Total Records</p>
                   <p className="text-2xl font-bold text-gray-800">{payrolls.length}</p>
                 </div>
-                <button
+                {/* <button
                   onClick={exportToExcel}
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 border border-gray-700 rounded-lg hover:from-gray-700 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
@@ -901,365 +897,365 @@ const PayrollManagement = () => {
                       </div>
                     </div>
 
-                    <div className="p-6">
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-4 text-xs">
-                          <div className="font-semibold text-gray-700 mb-1">Employee Information</div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-500">Employee:</span>
-                            <span className="font-medium">{getEmployeeName(formData.employeeId)}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-gray-500">Structure ID:</span>
-                            <span className="font-medium">{formData.salaryStructureId}</span>
-                          </div>
-                        </div>
+                  <div className="p-6">
+  <form onSubmit={handleSubmit} className="space-y-4">
+    {/* Employee Information */}
+    <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-4 text-xs">
+      <div className="font-semibold text-gray-700 mb-1">Employee Information</div>
+      <div className="flex items-center gap-2">
+        <span className="text-gray-500">Employee:</span>
+        <span className="font-medium">{getEmployeeName(formData.employeeId)}</span>
+            <span className="text-gray-500">Employee ID:</span>
+        <span className="font-medium">{formData.employeeId}</span>
+      </div>
+     
+    </div>
 
-                        <div className="grid grid-cols-5 gap-2">
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Basic Salary *"
-                              name="basicSalary"
-                              value={formData.basicSalary}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              error={validationErrors.basicSalary}
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
+    {/*  EARNINGS SECTION */}
+<div className="bg-gray-50 rounded-lg p-4 border border-green-100">
+  <div className="font-semibold text-black mb-3 flex items-center gap-2">
+    
+    <span className="text-sm font-medium text-gray-700">EARNINGS</span>
+  </div>
+  <div className="grid grid-cols-7 gap-2">
+    <div className="col-span-1 text-xs">
+      <Input
+        label="Basic *"
+        name="basicSalary"
+        value={formData.basicSalary}
+        onChange={handleInputChange}
+        placeholder="0"
+        error={validationErrors.basicSalary}
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div>
+    <div className="col-span-1 text-xs">
+      <Input
+        label="Perf. Bonus"
+        name="performanceBonus"
+        value={formData.performanceBonus}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div>
+    <div className="col-span-1 text-xs">
+      <Input
+        label="Bonus"
+        name="bonus"
+        value={formData.bonus}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div>
+    <div className="col-span-1 text-xs">
+      <Input
+        label="Incentives"
+        name="incentives"
+        value={formData.incentives}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div>
+  </div>
+</div>
 
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="HRA"
-                              name="houseRentAllowance"
-                              value={formData.houseRentAllowance}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
+    {/* 🟦 ALLOWANCES SECTION */}
+    <div className="bg-gray-50 rounded-lg p-4 border border-blue-100">
+      <div className="font-semibold text-black mb-3 flex items-center gap-2">
+        ALLOWANCES
+      </div>
+      <div className="grid grid-cols-6 gap-2">
+        <div className="col-span-1 text-xs">
+          <Input
+            label="HRA"
+            name="houseRentAllowance"
+            value={formData.houseRentAllowance}
+            onChange={handleInputChange}
+            placeholder="0"
+            type="text"
+            prefix={true}
+            className="text-xs p-2 h-10"
+          />
+        </div>
+        <div className="col-span-1 text-xs">
+          <Input
+            label="Dearness Allowance"
+            name="dearnessAllowance"
+            value={formData.dearnessAllowance}
+            onChange={handleInputChange}
+            placeholder="0"
+            type="text"
+            prefix={true}
+            className="text-xs p-2 h-10"
+          />
+        </div>
+        <div className="col-span-1 text-xs">
+          <Input
+            label="Conveyance Allowance"
+            name="conveyanceAllowance"
+            value={formData.conveyanceAllowance}
+            onChange={handleInputChange}
+            placeholder="0"
+            type="text"
+            prefix={true}
+            className="text-xs p-2 h-10"
+          />
+        </div>
+        <div className="col-span-1 text-xs">
+          <Input
+            label="Medical Allowance"
+            name="medicalAllowance"
+            value={formData.medicalAllowance}
+            onChange={handleInputChange}
+            placeholder="0"
+            type="text"
+            prefix={true}
+            className="text-xs p-2 h-10"
+          />
+          
+        </div>
+            <div className="col-span-1 text-xs">
+          <Input
+            label="Other Allowances"
+            name="otherAllowances"
+            value={formData.otherAllowances}
+            onChange={handleInputChange}
+            placeholder="0"
+            type="text"
+            prefix={true}
+            className="text-xs p-2 h-10"
+          />
+        </div>
+        <div className="col-span-1 text-xs">
+          <Input
+            label="Entertainment Allowance"
+            name="entertainmentAllowance"
+            value={formData.entertainmentAllowance}
+            onChange={handleInputChange}
+            placeholder="0"
+            type="text"
+            prefix={true}
+            className="text-xs p-2 h-10"
+          />
+        </div>
+        <div className="col-span-1 text-xs">
+          <Input
+            label="Special Allowance"
+            name="specialAllowance"
+            value={formData.specialAllowance}
+            onChange={handleInputChange}
+            placeholder="0"
+            type="text"
+            prefix={true}
+            className="text-xs p-2 h-10"
+          />
+        </div>
+      </div>
+</div>
 
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Dearness Allowance"
-                              name="dearnessAllowance"
-                              value={formData.dearnessAllowance}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
+    {/* 🟥 DEDUCTIONS SECTION */}
+ <div className="bg-gray-50 rounded-lg p-4 border border-red-100">
+  <div className="font-semibold text-black mb-3 flex items-center gap-2">
+    
+    DEDUCTIONS
+  </div>
+  <div className="grid grid-cols-4 gap-2">
+    <div className="col-span-1 text-xs">
+      <Input
+        label="PF Contribution"
+        name="pfEmpContribution"
+        value={formData.pfEmpContribution}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div>
+    {/* <div className="col-span-1 text-xs">
+      <Input
+        label="Salary Advance"
+        name="salaryAdvanceDeductions"
+        value={formData.salaryAdvanceDeductions}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div> */}
+    {/* <div className="col-span-1 text-xs">
+      <Input
+        label="Loan Deductions"
+        name="salaryLoanDeductions"
+        value={formData.salaryLoanDeductions}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div> */}
+    <div className="col-span-1 text-xs">
+      <Input
+        label="Professional Tax"
+        name="professionalTax"
+        value={formData.professionalTax}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div>
+    {/* <div className="col-span-1 text-xs">
+      <Input
+        label="Fooding"
+        name="foodingDeductions"
+        value={formData.foodingDeductions}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div> */}
+    {/* <div className="col-span-1 text-xs">
+      <Input
+        label="Accommodation"
+        name="accommodationDeductions"
+        value={formData.accommodationDeductions}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div> */}
+    {/* <div className="col-span-1 text-xs">
+      <Input
+        label="Other Deductions"
+        name="otherDeductions"
+        value={formData.otherDeductions || ""}
+        onChange={handleInputChange}
+        placeholder="0"
+        type="text"
+        prefix={true}
+        className="text-xs p-2 h-10"
+      />
+    </div> */}
+  </div>
+</div>
 
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Conveyance Allowance"
-                              name="conveyanceAllowance"
-                              value={formData.conveyanceAllowance}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-                          
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Medical Allowance"
-                              name="medicalAllowance"
-                              value={formData.medicalAllowance}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-                        </div>
+    {/* 🟫 TAXES SECTION */}
+ <div className="bg-gray-50 rounded-lg p-4 border border-amber-100">
+  <div className="font-semibold text-black mb-3 flex items-center gap-2">
+    TAXES
+  </div>
+  <div className="grid grid-cols-4 gap-2">
+    {/* TDS Type Input */}
+    <div className="col-span-1 text-xs">
+      <label htmlFor="tdsType" className="block text-xs font-medium text-gray-700 mb-1">
+        TDS Type (%)
+      </label>
+      <input
+        type="text"
+        id="tdsType"
+        name="tdsType"
+        value={formData.tdsType}
+        onChange={handleInputChange}
+        className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-9"
+        placeholder="Enter TDS type"
+      />
+    </div>
 
-                        <div className="grid grid-cols-5 gap-2 mt-1">
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Other Allowances"
-                              name="otherAllowances"
-                              value={formData.otherAllowances}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-                          
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Entertainment Allowance"
-                              name="entertainmentAllowance"
-                              value={formData.entertainmentAllowance}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
+    {/* TDS Amount Input - now with consistent styling */}
+    <div className="col-span-1 text-xs relative">
+      <label htmlFor="tdsAmount" className="block text-xs font-medium text-gray-700 mb-1">
+        TDS Amount
+      </label>
+      <div className="relative">
+        <span className="absolute left-3 top-2.5 text-xs text-gray-500">₹</span>
+        <input
+          type="text"
+          id="tdsAmount"
+          name="tdsAmount"
+          value={formData.tdsAmount}
+          onChange={handleInputChange}
+          className="w-full pl-7 pr-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-9"
+          placeholder="0"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+    {/* 🟨 REMARKS SECTION */}
+  <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+  <div className="font-semibold text-black mb-3 flex items-center gap-5">
+    
+    REMARKS
+  </div>
+  <Input
+    name="remarks"
+    value={formData.remarks}
+    onChange={handleInputChange}
+    placeholder="Any additional notes"
+    type="text"
+    compact
+    className="text-xs"
+  />
+</div>
 
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Special Allowance"
-                              name="specialAllowance"
-                              value={formData.specialAllowance}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
+    {/* Summary Cards */}
+   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200">
+  {/* Gross Salary Card */}
+  <div className="bg-white rounded-md p-3 border border-gray-200 flex-1 min-w-[200px]">
+    <div className="flex items-center gap-3">
+      <div className="p-2 rounded-full bg-green-50">
+        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div>
+        <h3 className="text-sm font-medium text-gray-500">Gross Salary</h3>
+        <p className="text-xl font-semibold text-gray-900">
+          {formatCurrency(calculateGrossSalary())}
+        </p>
+      </div>
+    </div>
+  </div>
 
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Performance Bonus"
-                              name="performanceBonus"
-                              value={formData.performanceBonus}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Bonus"
-                              name="bonus"
-                              value={formData.bonus}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-5 gap-2 mt-1">
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Incentives"
-                              name="incentives"
-                              value={formData.incentives}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="PF Contribution"
-                              name="pfEmpContribution"
-                              value={formData.pfEmpContribution}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs relative">
-                            <Select
-                              label="TDS Type"
-                              name="tdsType"
-                              value={formData.tdsType}
-                              onChange={handleInputChange}
-                              options={[
-                                { value: "", label: "Select TDS Type" },
-                                { value: "10%", label: "10%" },
-                                { value: "20%", label: "20%" },
-                                { value: "30%", label: "30%" },
-                                { value: "Other", label: "Other" }
-                              ]}
-                              className="text-xs p-2 h-10 w-full"
-                              menuClassName="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="TDS Amount"
-                              name="tdsAmount"
-                              value={formData.tdsAmount}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Professional Tax"
-                              name="proffesionalTax"
-                              value={formData.proffesionalTax}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-5 gap-2 mt-1">
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Salary Advance Deductions"
-                              name="salaryAdvanceDeductions"
-                              value={formData.salaryAdvanceDeductions}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Loan Deductions"
-                              name="salaryLoanDeductions"
-                              value={formData.salaryLoanDeductions}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Fooding Deductions"
-                              name="foodingDeductions"
-                              value={formData.foodingDeductions}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Accommodation Deductions"
-                              name="accommodationDeductions"
-                              value={formData.accommodationDeductions}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              type="text"
-                              prefix={true}
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-
-                          <div className="col-span-1 text-xs">
-                            <Input
-                              label="Remarks"
-                              name="remarks"
-                              value={formData.remarks}
-                              onChange={handleInputChange}
-                              placeholder="Any additional notes"
-                              type="text"
-                              className="text-xs p-2 h-10"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
-                          <div className="flex flex-wrap items-center justify-between gap-4">
-                            <div className="flex-1 min-w-[200px]">
-                              <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-full bg-green-50">
-                                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-gray-500 mb-1">Gross Salary</h3>
-                                    <p className="text-xl font-semibold text-gray-900">
-                                      {formatCurrency(calculateGrossSalary())}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex-1 min-w-[200px]">
-                              <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-full bg-blue-50">
-                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                    </svg>
-                                  </div>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-gray-500 mb-1">Net Salary</h3>
-                                    <p className="text-xl font-semibold text-gray-900">
-                                      {formatCurrency(calculateNetSalary())}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex-1 min-w-[200px]">
-                              <div className="bg-white rounded-md p-4 border border-gray-200 shadow-xs">
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-full bg-gray-50">
-                                    <User className="w-5 h-5 text-gray-600" />
-                                  </div>
-                                  <div>
-                                    <h3 className="text-sm font-medium text-gray-500 mb-1">Last Updated</h3>
-                                    <p className="text-sm font-semibold text-gray-900">{editingPayroll.updatedBy}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{formatDate(editingPayroll.updatedAt)}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-end gap-3 pt-6">
-                          <button
-                            type="button"
-                            onClick={handleCancel}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={submitLoading}
-                            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg hover:from-blackhover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 disabled:opacity-70 transition-all duration-200"
-                          >
-                            {submitLoading ? 'Saving...' : 'Save Changes'}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
+  {/* Action Buttons */}
+  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+    <button
+      type="button"
+      onClick={handleCancel}
+      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200"
+    >
+      Cancel
+    </button>
+    <button
+      type="submit"
+      disabled={submitLoading}
+      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg hover:from-gray-700 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-70 transition-all duration-200"
+    >
+      {submitLoading ? 'Saving...' : 'Save Changes'}
+    </button>
+  </div>
+</div>
+  </form>
+</div>
                   </div>
                 ) : (
                   renderPayrollDetails(viewingPayroll)
@@ -1268,40 +1264,67 @@ const PayrollManagement = () => {
             ) : (
               <div className="space-y-6">
                 {/* Search and Filter Section */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-    {/* Search Input */}
-    <div className="col-span-1 md:col-span-2">
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-gray-400" />
-        </div>
-        <input
-          type="text"
-          placeholder="Search..."
-          className="block w-full pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-    </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    {/* Search Input */}
+                    <div className="col-span-1 md:col-span-1">
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                          <Search className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Search by name or ID..."
+                          className="block w-full pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                    </div>
 
-    {/* Department Filter */}
-    <div className="col-span-1">
-      <select
-        className="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
-        value={departmentFilter}
-        onChange={(e) => setDepartmentFilter(e.target.value)}
-      >
-        <option value="all">All</option>
-        {uniqueDepartments.map((dept) => (
-          <option key={dept} value={dept}>{dept}</option>
-        ))}
-      </select>
-    </div>
-  </div>
-</div>
+                    {/* Department Filter */}
+                    <div className="col-span-1">
+                      <select
+                        className="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
+                        value={departmentFilter}
+                        onChange={(e) => setDepartmentFilter(e.target.value)}
+                      >
+                        <option value="all">All Departments</option>
+                        {uniqueDepartments.map((dept) => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
 
+                    {/* Designation Filter */}
+                    <div className="col-span-1">
+                      <select
+                        className="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
+                        value={designationFilter}
+                        onChange={(e) => setDesignationFilter(e.target.value)}
+                      >
+                        <option value="all">All Designations</option>
+                        {uniqueDesignations.map((desg) => (
+                          <option key={desg} value={desg}>{desg}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Branch Filter */}
+                    <div className="col-span-1">
+                      <select
+                        className="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400/30 focus:border-gray-400 transition-all duration-150"
+                        value={branchFilter}
+                        onChange={(e) => setBranchFilter(e.target.value)}
+                      >
+                        <option value="all">All Branches</option>
+                        {uniqueBranches.map((branch) => (
+                          <option key={branch} value={branch}>{branch}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Payroll Table */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -1316,16 +1339,16 @@ const PayrollManagement = () => {
                             Employee
                           </th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Structure ID
+                            Department
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Designation
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Branch
                           </th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Gross Salary
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Net Salary
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Last Updated
                           </th>
                           <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
@@ -1351,25 +1374,22 @@ const PayrollManagement = () => {
                                       </div>
                                       {employeeDetails && (
                                         <div className="text-xs text-gray-500 mt-1">
-                                          {employeeDetails.id} / {employeeDetails.designation}
+                                          {employeeDetails.id}
                                         </div>
                                       )}
                                     </div>
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {payroll.salaryStructureId}
+                                    {employeeDetails?.department || '-'}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {employeeDetails?.designation || '-'}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {employeeDetails?.branch || '-'}
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {formatCurrency(payroll.grossSalary)}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                                    {formatCurrency(payroll.netSalary)}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex flex-col">
-                                      <span className="text-sm text-gray-900">{payroll.updatedBy}</span>
-                                      <span className="text-xs text-gray-500">{formatShortDate(payroll.updatedAt)}</span>
-                                    </div>
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex justify-end gap-2">
