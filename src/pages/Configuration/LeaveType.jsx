@@ -182,62 +182,64 @@ const LeaveManagement = () => {
     fetchLeaveTypes();
   }, []);
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      showToast("Please fill in all required fields", "error");
-      return;
+ const handleSubmit = async () => {
+  if (!validateForm()) {
+    showToast("Please fill in all required fields", "error");
+    return;
+  }
+  
+  setSubmitLoading(true);
+  
+  try {
+    const payload = {
+      leaveType: formData.leaveType,  // Make sure this matches your backend model
+      remarks: formData.remarks,
+      status: formData.status === "Active"
+    };
+
+    let response;
+    if (editingLeave) {
+      // Update existing leave type - make sure the endpoint matches your backend
+      response = await fetch(`${API_BASE_URL}/update/${editingLeave.id}`, {  // Changed from leaveType to id
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      // Create new leave type
+      response = await fetch(`${API_BASE_URL}/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
     }
-    
-    setSubmitLoading(true);
-    
-    try {
-      const payload = {
-        ...formData,
-        status: formData.status === "Active"
-      };
 
-      let response;
-      if (editingLeave) {
-        // Update existing leave type
-        response = await fetch(`${API_BASE_URL}/update/${editingLeave.leaveType}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-      } else {
-        // Create new leave type
-        response = await fetch(`${API_BASE_URL}/create`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      showToast(
-        editingLeave ? "Leave type updated successfully" : "Leave type added successfully",
-        "success"
-      );
-      
-      resetForm();
-      fetchLeaveTypes(); // Refresh the list
-      
-    } catch (error) {
-      console.error("Submit error:", error);
-      showToast("An error occurred while saving the leave type", "error");
-    } finally {
-      setSubmitLoading(false);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
-  };
+
+    const result = await response.json();
+    
+    showToast(
+      editingLeave ? "Leave type updated successfully" : "Leave type added successfully",
+      "success"
+    );
+    
+    resetForm();
+    fetchLeaveTypes(); // Refresh the list
+    
+  } catch (error) {
+    console.error("Submit error:", error);
+    showToast(error.message || "An error occurred while saving the leave type", "error");
+  } finally {
+    setSubmitLoading(false);
+  }
+};
 
   const resetForm = () => {
     setFormData({

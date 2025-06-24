@@ -156,7 +156,7 @@ const Tag = ({ children, color, className = "" }) => {
 };
 
 // Pagination Component
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+const Pagination = ({ currentPage, totalPages, onPageChange, itemsPerPage, totalItems }) => {
     const getPageNumbers = () => {
         const pages = [];
         const maxVisiblePages = 5;
@@ -191,6 +191,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         return pages;
     };
 
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
     return (
         <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
@@ -212,9 +215,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                     <p className="text-sm text-gray-700">
-                        Showing <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> to{' '}
-                        <span className="font-medium">{Math.min(currentPage * 10, totalPages * 10)}</span> of{' '}
-                        <span className="font-medium">{totalPages * 10}</span> results
+                        Showing <span className="font-medium">{startItem}</span> to{' '}
+                        <span className="font-medium">{endItem}</span> of{' '}
+                        <span className="font-medium">{totalItems}</span> results
                     </p>
                 </div>
                 <div>
@@ -301,13 +304,9 @@ const apiService = {
         }
     },
 
-    async getAllBranches() {
-        return this.request('/all');
-    },
     async getBranches(page = 1, limit = 10) {
-    return this.request(`/all?page=${page}&limit=${limit}`);
-},
-
+        return this.request(`/all?page=${page}&limit=${limit}`);
+    },
 
     async createBranch(branchData) {
         return this.request('/create', {
@@ -372,6 +371,8 @@ const BranchManagement = () => {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Toast functions
     const showToast = (message, type = 'success') => {
@@ -381,19 +382,23 @@ const BranchManagement = () => {
         }, 3000);
     };
 
-    // Fetch branches on component mount
+    // Fetch branches when page changes
     useEffect(() => {
         fetchBranches();
-    }, []);
+    }, [currentPage]);
 
     const fetchBranches = async () => {
         setLoading(true);
         try {
-            const response = await apiService.getAllBranches();
+            const response = await apiService.getBranches(currentPage, itemsPerPage);
             setBranches(response.branches || []);
+            setTotalItems(response.pagination.totalBranches);
+            setTotalPages(response.pagination.totalPages);
         } catch (error) {
             showToast('Failed to fetch branches. Please check your connection and try again.', 'error');
             setBranches([]);
+            setTotalItems(0);
+            setTotalPages(1);
         } finally {
             setLoading(false);
         }
@@ -595,12 +600,6 @@ const BranchManagement = () => {
         emp.designation?.toLowerCase().includes(searchText.toLowerCase())
     );
 
-    // Pagination logic
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentBranches = branches.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(branches.length / itemsPerPage);
-
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
@@ -632,7 +631,7 @@ const BranchManagement = () => {
                             <div className="flex items-center gap-4">
                                 <div className="text-right">
                                     <p className="text-xs sm:text-sm text-gray-500">Total Branches</p>
-                                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{branches.length}</p>
+                                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{totalItems}</p>
                                 </div>
                             </div>
                         </div>
@@ -692,11 +691,11 @@ const BranchManagement = () => {
                                             <TableSkeleton />
                                         ) : (
                                             <tbody className="bg-white divide-y divide-gray-50">
-                                                {currentBranches.map((branch, index) => (
+                                                {branches.map((branch, index) => (
                                                     <tr key={branch._id || index} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200">
                                                         <td className="px-4 py-3 whitespace-nowrap">
                                                             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-gray-700 to-black rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold">
-                                                                {indexOfFirstItem + index + 1}
+                                                                {(currentPage - 1) * itemsPerPage + index + 1}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 whitespace-nowrap">
@@ -773,11 +772,13 @@ const BranchManagement = () => {
                                         )}
                                     </table>
                                 </div>
-                                {branches.length > 0 && (
+                                {totalItems > 0 && (
                                     <Pagination
                                         currentPage={currentPage}
                                         totalPages={totalPages}
                                         onPageChange={handlePageChange}
+                                        itemsPerPage={itemsPerPage}
+                                        totalItems={totalItems}
                                     />
                                 )}
                             </div>
@@ -903,7 +904,7 @@ const BranchManagement = () => {
                                 />
                             </div>
 
-                            <div className="flex items-center">
+                            <div className="flex items-center justify-between pt-2">
                                 <Switch
                                     name="status"
                                     checked={formData.status === 1}
@@ -911,16 +912,12 @@ const BranchManagement = () => {
                                     checkedChildren="Active"
                                     unCheckedChildren="Inactive"
                                 />
-                                <span className="ml-2 text-sm text-gray-600">
-                                    {formData.status === 1 ? 'Active' : 'Inactive'}
-                                </span>
                             </div>
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                        <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
                             <button
-                                type="button"
                                 onClick={() => {
                                     setIsModalOpen(false);
                                     resetForm();
@@ -930,14 +927,16 @@ const BranchManagement = () => {
                                 Cancel
                             </button>
                             <button
-                                type="button"
                                 onClick={handleSubmit}
                                 disabled={submitLoading}
                                 className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-md hover:from-gray-700 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {submitLoading ? (
                                     <span className="flex items-center">
-                                        <Clock className="w-4 h-4 mr-2 animate-spin" />
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
                                         {editingBranch ? 'Updating...' : 'Creating...'}
                                     </span>
                                 ) : (
@@ -950,13 +949,13 @@ const BranchManagement = () => {
             )}
 
             {/* Assign Employees Modal */}
-            {isAssignModalOpen && currentBranch && (
+            {isAssignModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/50 bg-opacity-50 backdrop-blur-sm">
                     <div className="relative w-full max-w-2xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
                         {/* Modal Header */}
                         <div className="bg-black px-6 py-4 flex items-center justify-between">
                             <h3 className="text-lg font-semibold text-white">
-                                Assign Employees to {currentBranch.branchName}
+                                Assign Employees to {currentBranch?.branchName}
                             </h3>
                             <button
                                 onClick={() => {
@@ -985,69 +984,42 @@ const BranchManagement = () => {
                                 />
                             </div>
 
-                            <div className="border border-gray-200 rounded-lg overflow-hidden">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Select
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Name
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                ID
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Designation
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                            <div className="space-y-2">
+                                <h4 className="text-sm font-medium text-gray-700">Available Employees</h4>
+                                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div className="max-h-60 overflow-y-auto">
                                         {filteredEmployees.length > 0 ? (
-                                            filteredEmployees.map((employee) => (
-                                                <tr key={employee.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedEmployees.some(e => e.id === employee.id)}
-                                                            onChange={() => {
-                                                                setSelectedEmployees(prev =>
-                                                                    prev.some(e => e.id === employee.id)
-                                                                        ? prev.filter(e => e.id !== employee.id)
-                                                                        : [...prev, employee]
-                                                                );
+                                            <ul className="divide-y divide-gray-200">
+                                                {filteredEmployees.map((employee) => (
+                                                    <li key={employee.id} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-900">{employee.name}</p>
+                                                            <p className="text-xs text-gray-500">{employee.designation} ({employee.id})</p>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedEmployees(selectedEmployees.filter(e => e.id !== employee.id));
                                                             }}
-                                                            className="h-4 w-4 text-gray-600 focus:ring-gray-500 border-gray-300 rounded"
-                                                        />
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                        {employee.name}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {employee.id}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {employee.designation}
-                                                    </td>
-                                                </tr>
-                                            ))
+                                                            className="text-red-500 hover:text-red-700"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         ) : (
-                                            <tr>
-                                                <td colSpan="4" className="px-6 py-4 text-center text-sm text-gray-500">
-                                                    No employees found
-                                                </td>
-                                            </tr>
+                                            <div className="px-4 py-8 text-center">
+                                                <p className="text-sm text-gray-500">No employees found</p>
+                                            </div>
                                         )}
-                                    </tbody>
-                                </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                        <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
                             <button
-                                type="button"
                                 onClick={() => {
                                     setIsAssignModalOpen(false);
                                     setSelectedEmployees([]);
@@ -1058,15 +1030,17 @@ const BranchManagement = () => {
                                 Cancel
                             </button>
                             <button
-                                type="button"
                                 onClick={handleAssignSubmit}
                                 disabled={loading}
                                 className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black rounded-md hover:from-gray-700 hover:to-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <span className="flex items-center">
-                                        <Clock className="w-4 h-4 mr-2 animate-spin" />
-                                        Saving...
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Updating...
                                     </span>
                                 ) : (
                                     <span>Save Assignments</span>
