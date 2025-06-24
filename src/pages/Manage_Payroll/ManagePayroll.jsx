@@ -1175,7 +1175,7 @@ const PayrollManagement = () => {
         name="tdsType"
         value={formData.tdsType}
         onChange={handleInputChange}
-        className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-9"
+        className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black h-9"
         placeholder="Enter TDS type"
       />
     </div>
@@ -1193,7 +1193,7 @@ const PayrollManagement = () => {
           name="tdsAmount"
           value={formData.tdsAmount}
           onChange={handleInputChange}
-          className="w-full pl-7 pr-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-9"
+          className="w-full pl-7 pr-3 py-2 text-xs border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black h-9"
           placeholder="0"
         />
       </div>
